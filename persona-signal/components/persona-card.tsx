@@ -1,19 +1,33 @@
 "use client";
 import { useState } from "react";
-import { DecisionMode, PersonaComparisonResult } from "@/lib/types";
+import { DecisionMode, InputType, PersonaComparisonResult } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { getVariantLabel } from "@/lib/display";
 
 interface Props {
   result: PersonaComparisonResult;
   index: number;
   decisionMode?: DecisionMode;
+  inputType?: InputType;
 }
 
-export default function PersonaCard({ result, index, decisionMode = "compare" }: Props) {
+export default function PersonaCard({ result, index, decisionMode = "compare", inputType = "copy" }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const { persona, reactionA, reactionB, preferredVariant, preferenceReason } = result;
+  const { persona, relevance, reactionA, reactionB, preferredVariant, preferenceReason } = result;
   const isReview = decisionMode === "review";
+  const relevanceTone =
+    relevance.level === "high"
+      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+      : relevance.level === "medium"
+        ? "bg-amber-100 text-amber-700 border-amber-200"
+        : "bg-slate-100 text-slate-600 border-slate-200";
+  const relevanceLabel =
+    relevance.level === "high"
+      ? "타깃 적합도 높음"
+      : relevance.level === "medium"
+        ? "타깃 적합도 보통"
+        : "타깃 적합도 낮음";
 
   const winnerColor =
     isReview
@@ -38,14 +52,22 @@ export default function PersonaCard({ result, index, decisionMode = "compare" }:
               <Badge variant="outline" className="text-xs px-1.5 py-0">
                 {persona.occupation}
               </Badge>
+              <Badge className={`text-[10px] ${relevanceTone}`}>
+                {relevanceLabel}
+              </Badge>
             </div>
             <p className="text-xs text-slate-400">
               {persona.province}{persona.district ? ` · ${persona.district.split("-")[1]}` : ""}
               {persona.education_level ? ` · ${persona.education_level}` : ""}
             </p>
+            {relevance.reason && (
+              <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                {relevance.reason}
+              </p>
+            )}
           </div>
           <Badge className={`text-xs shrink-0 ${winnerColor}`}>
-            {isReview ? "단일 검토" : preferredVariant === "Tie" ? "동률" : `카피 ${preferredVariant} 선호`}
+            {isReview ? "단일 검토" : preferredVariant === "Tie" ? "동률" : `${getVariantLabel(inputType, preferredVariant)} 선호`}
           </Badge>
         </div>
 
@@ -56,8 +78,8 @@ export default function PersonaCard({ result, index, decisionMode = "compare" }:
 
         {/* A/B 반응 요약 */}
         <div className={`grid gap-2 mb-3 ${isReview ? "grid-cols-1" : "grid-cols-2"}`}>
-          <ReactionBlock label="카피 A" color="blue" reaction={reactionA} />
-          {!isReview && <ReactionBlock label="카피 B" color="violet" reaction={reactionB} />}
+          <ReactionBlock label={getVariantLabel(inputType, "A", decisionMode)} color="blue" reaction={reactionA} />
+          {!isReview && <ReactionBlock label={getVariantLabel(inputType, "B")} color="violet" reaction={reactionB} />}
         </div>
 
         {/* 상세 토글 */}
@@ -70,8 +92,8 @@ export default function PersonaCard({ result, index, decisionMode = "compare" }:
 
         {expanded && (
           <div className={`mt-3 grid gap-3 ${isReview ? "grid-cols-1" : "grid-cols-2"}`}>
-            <DetailBlock label="카피 A" color="blue" reaction={reactionA} />
-            {!isReview && <DetailBlock label="카피 B" color="violet" reaction={reactionB} />}
+            <DetailBlock label={getVariantLabel(inputType, "A", decisionMode)} color="blue" reaction={reactionA} />
+            {!isReview && <DetailBlock label={getVariantLabel(inputType, "B")} color="violet" reaction={reactionB} />}
           </div>
         )}
       </CardContent>

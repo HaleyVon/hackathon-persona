@@ -27,7 +27,7 @@ export const MARITAL_OPTIONS = [
   { value: "이혼", label: "이혼/기타" },
 ];
 
-export const SAMPLE_SIZE_OPTIONS = [3, 5, 8, 10];
+export const SAMPLE_SIZE_OPTIONS = [10, 20, 30, 50];
 
 export const DECISION_MODE_OPTIONS = [
   { value: "compare" as const, label: "A/B 비교", description: "두 안 중 무엇이 더 나은가" },
@@ -133,7 +133,7 @@ export const DEMO_REQUEST = {
     provinces: ["서울", "경기"],
     maritalStatuses: [] as string[],
   },
-  sampleSize: 5,
+  sampleSize: 10,
   decisionMode: "compare" as const,
   inputType: "copy" as const,
 };

@@ -7,6 +7,7 @@ import {
   DECISION_MODE_OPTIONS, INPUT_TYPE_OPTIONS, MVP_INPUT_TYPE_OPTIONS, MARKET_TYPE_OPTIONS,
 } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
+import { getInputTypeCopy } from "@/lib/display";
 
 interface Props {
   value: SimulationRequest;
@@ -45,14 +46,13 @@ export default function InputForm({ value, onChange, loading }: Props) {
 
   const isReview = value.decisionMode === "review";
   const selectedType = INPUT_TYPE_OPTIONS.find((o) => o.value === value.inputType);
-
-  const inputLabels: Record<string, { a: string; b: string; placeholder: string }> = {
-    copy: { a: "카피 A", b: "카피 B", placeholder: "예: 회의록을 자동으로 정리해주는 AI 비서" },
-    pricing: { a: "플랜 A", b: "플랜 B", placeholder: "예: 월 9,900원 / 팀 멤버 무제한" },
-    feature: { a: "아이디어 A", b: "아이디어 B", placeholder: "예: 회의 종료 후 자동으로 할 일 목록 생성" },
-    positioning: { a: "메시지 A", b: "메시지 B", placeholder: "예: 팀을 위한 AI 생산성 도구" },
+  const typeCopy = getInputTypeCopy(value.inputType);
+  const inputPlaceholders: Record<string, string> = {
+    copy: "예: 회의록을 자동으로 정리해주는 AI 비서",
+    pricing: "예: 월 9,900원 / 팀 멤버 무제한",
+    feature: "예: 회의 종료 후 자동으로 할 일 목록 생성",
+    positioning: "예: 팀을 위한 AI 생산성 도구",
   };
-  const labels = inputLabels[value.inputType] ?? inputLabels.copy;
 
   return (
     <div className="space-y-4">
@@ -191,12 +191,12 @@ export default function InputForm({ value, onChange, loading }: Props) {
           </div>
           <div>
             <label className="block text-xs font-semibold text-blue-500 mb-1.5">
-              {isReview ? "검토 내용" : labels.a}
+              {isReview ? typeCopy.review : typeCopy.compareA}
             </label>
             <textarea
               className="w-full text-sm text-slate-700 bg-blue-50 rounded-lg px-3 py-2 resize-none outline-none placeholder:text-slate-300 leading-relaxed"
               rows={2}
-              placeholder={labels.placeholder}
+              placeholder={inputPlaceholders[value.inputType] ?? inputPlaceholders.copy}
               value={value.variantA}
               onChange={(e) => set({ variantA: e.target.value })}
               disabled={loading}
@@ -204,11 +204,11 @@ export default function InputForm({ value, onChange, loading }: Props) {
           </div>
           {!isReview && (
             <div>
-              <label className="block text-xs font-semibold text-violet-500 mb-1.5">{labels.b}</label>
+              <label className="block text-xs font-semibold text-violet-500 mb-1.5">{typeCopy.compareB}</label>
               <textarea
                 className="w-full text-sm text-slate-700 bg-violet-50 rounded-lg px-3 py-2 resize-none outline-none placeholder:text-slate-300 leading-relaxed"
                 rows={2}
-                placeholder={labels.placeholder}
+                placeholder={inputPlaceholders[value.inputType] ?? inputPlaceholders.copy}
                 value={value.variantB}
                 onChange={(e) => set({ variantB: e.target.value })}
                 disabled={loading}
@@ -403,13 +403,16 @@ export default function InputForm({ value, onChange, loading }: Props) {
               </button>
             ))}
           </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
+            10명부터 시작하고, 중요한 안건은 20명 이상으로 넓혀 보는 편이 좋습니다.
+          </p>
         </CardContent>
       </Card>
 
       <p className="text-xs text-slate-400 text-center leading-relaxed">
         이 도구는 실제 설문을 대체하지 않습니다.
         <br />
-        초기 가설 검증과 카피 방향 탐색을 돕는 AI 시뮬레이션입니다.
+        초기 가설 검증과 메시지·가격·기능 방향 탐색을 돕는 AI 시뮬레이션입니다.
       </p>
     </div>
   );

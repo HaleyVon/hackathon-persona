@@ -142,7 +142,7 @@ export default function SegmentTable({ breakdown, insights, winner }: Props) {
                 )}
                 {typeof seg.avgConfusionA === "number" && typeof seg.avgConfusionB === "number" && (
                   <span className="ml-3">
-                    혼란 A {seg.avgConfusionA.toFixed(1)} / B {seg.avgConfusionB.toFixed(1)}
+                    명확성 A {(6 - seg.avgConfusionA).toFixed(1)} / B {(6 - seg.avgConfusionB).toFixed(1)}
                   </span>
                 )}
               </div>

@@ -1,11 +1,15 @@
 import { SimulationSummary } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { getInputTypeCopy } from "@/lib/display";
 
 interface Props {
   summary: SimulationSummary;
 }
 
 export default function InsightCards({ summary }: Props) {
+  const inputType = summary.inputType ?? "copy";
+  const labels = getInputTypeCopy(inputType);
+
   return (
     <div className="space-y-3">
       {/* 해석 문장 */}
@@ -31,7 +35,7 @@ export default function InsightCards({ summary }: Props) {
           emptyMsg="강점 포인트 없음"
         />
         <RiskCard
-          title="수정 카피 초안"
+          title={`수정 ${labels.short} 초안`}
           icon="→"
           color="blue"
           items={summary.recommendedCopies.slice(0, 3)}

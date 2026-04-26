@@ -1,6 +1,7 @@
 import {
   InputType,
   PersonaComparisonResult,
+  RelevanceLevel,
   RiskAxes,
   SegmentBreakdown,
   SegmentInsights,
@@ -9,15 +10,12 @@ import {
   SummaryConfidence,
   VariantReaction,
 } from "./types";
-
-type AxesKey = keyof RiskAxes;
-
-function avgAxis(results: PersonaComparisonResult[], side: "A" | "B", axis: AxesKey): number {
-  const vals = results
-    .map((r) => (side === "A" ? r.reactionA : r.reactionB)[axis])
-    .filter((v): v is number => v !== undefined);
-  if (vals.length === 0) return 0;
-  return Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
+function weightedAverage(values: Array<{ value?: number; weight: number }>): number {
+  const defined = values.filter((entry): entry is { value: number; weight: number } => entry.value !== undefined);
+  if (!defined.length) return 0;
+  const totalWeight = defined.reduce((sum, entry) => sum + entry.weight, 0);
+  if (totalWeight <= 0) return 0;
+  return Math.round((defined.reduce((sum, entry) => sum + (entry.value * entry.weight), 0) / totalWeight) * 10) / 10;
 }
 
 function buildRiskAxes(results: PersonaComparisonResult[], side: "A" | "B"): RiskAxes | undefined {
@@ -27,11 +25,26 @@ function buildRiskAxes(results: PersonaComparisonResult[], side: "A" | "B"): Ris
   });
   if (!hasData) return undefined;
   return {
-    comprehension: avgAxis(results, side, "comprehension"),
-    trust: avgAxis(results, side, "trust"),
-    appeal: avgAxis(results, side, "appeal"),
-    resistance: avgAxis(results, side, "resistance"),
-    confusionRisk: avgAxis(results, side, "confusionRisk"),
+    comprehension: weightedAverage(results.map((r) => ({
+      value: (side === "A" ? r.reactionA : r.reactionB).comprehension,
+      weight: r.relevance.weight,
+    }))),
+    trust: weightedAverage(results.map((r) => ({
+      value: (side === "A" ? r.reactionA : r.reactionB).trust,
+      weight: r.relevance.weight,
+    }))),
+    appeal: weightedAverage(results.map((r) => ({
+      value: (side === "A" ? r.reactionA : r.reactionB).appeal,
+      weight: r.relevance.weight,
+    }))),
+    resistance: weightedAverage(results.map((r) => ({
+      value: (side === "A" ? r.reactionA : r.reactionB).resistance,
+      weight: r.relevance.weight,
+    }))),
+    confusionRisk: weightedAverage(results.map((r) => ({
+      value: (side === "A" ? r.reactionA : r.reactionB).confusionRisk,
+      weight: r.relevance.weight,
+    }))),
   };
 }
 
@@ -53,10 +66,14 @@ function buildTypeAxes(
   let hasAny = false;
   for (const key of keys) {
     const vals = results
-      .map((r) => (side === "A" ? r.reactionA : r.reactionB)[key as keyof VariantReaction])
-      .filter((v): v is number => typeof v === "number");
+      .map((r) => ({
+        value: (side === "A" ? r.reactionA : r.reactionB)[key as keyof VariantReaction] as number | undefined,
+        weight: r.relevance.weight,
+      }))
+      .filter((entry): entry is { value: number; weight: number } => typeof entry.value === "number");
     if (vals.length > 0) {
-      out[key] = Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
+      const totalWeight = vals.reduce((sum, entry) => sum + entry.weight, 0);
+      out[key] = Math.round((vals.reduce((sum, entry) => sum + (entry.value * entry.weight), 0) / totalWeight) * 10) / 10;
       hasAny = true;
     }
   }
@@ -67,11 +84,34 @@ function round1(value: number): number {
   return Math.round(value * 10) / 10;
 }
 
+function weightedPurchaseIntent(results: PersonaComparisonResult[], side: "A" | "B"): number {
+  return weightedAverage(
+    results.map((result) => ({
+      value: side === "A" ? result.reactionA.purchaseIntent : result.reactionB.purchaseIntent,
+      weight: result.relevance.weight,
+    }))
+  );
+}
+
 function stddev(values: number[]): number {
   if (values.length <= 1) return 0;
   const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
   const variance = values.reduce((sum, value) => sum + ((value - mean) ** 2), 0) / values.length;
   return Math.sqrt(variance);
+}
+
+function buildRelevanceMix(results: PersonaComparisonResult[]): Record<RelevanceLevel, number> {
+  const counts = results.reduce<Record<RelevanceLevel, number>>((acc, result) => {
+    acc[result.relevance.level] += 1;
+    return acc;
+  }, { high: 0, medium: 0, low: 0 });
+
+  const total = results.length || 1;
+  return {
+    high: round1((counts.high / total) * 100),
+    medium: round1((counts.medium / total) * 100),
+    low: round1((counts.low / total) * 100),
+  };
 }
 
 function buildCautionSignals(params: {
@@ -85,6 +125,7 @@ function buildCautionSignals(params: {
   productDescription?: string;
   targetCustomer?: string;
   usageContext?: string;
+  relevanceMix?: Record<RelevanceLevel, number>;
 }): SummaryCautionSignal[] {
   const {
     results,
@@ -97,6 +138,7 @@ function buildCautionSignals(params: {
     productDescription = "",
     targetCustomer = "",
     usageContext = "",
+    relevanceMix = { high: 0, medium: 0, low: 0 },
   } = params;
 
   const cautions: SummaryCautionSignal[] = [];
@@ -105,19 +147,19 @@ function buildCautionSignals(params: {
   const trimmedTarget = targetCustomer.trim();
   const trimmedUsage = usageContext.trim();
 
-  if (sampleSize <= 3) {
-    cautions.push({
-      code: "small_sample",
-      label: "표본 적음",
-      description: `현재 해석은 ${sampleSize}명 표본 기준입니다. 배포 전 더 넓은 타깃이나 실제 유저 확인이 필요합니다.`,
-      severity: "critical",
-    });
-  } else if (sampleSize <= 5) {
+  if (sampleSize <= 10) {
     cautions.push({
       code: "small_sample",
       label: "표본 제한",
-      description: `현재 해석은 ${sampleSize}명 표본 기준입니다. 방향성 확인에는 쓸 수 있지만 확정 판단으로 보기엔 좁습니다.`,
+      description: `현재 해석은 ${sampleSize}명 표본 기준입니다. 방향성 탐색에는 유용하지만 확정 판단으로 보기엔 아직 좁습니다.`,
       severity: "warning",
+    });
+  } else if (sampleSize <= 20) {
+    cautions.push({
+      code: "small_sample",
+      label: "표본 보강 권장",
+      description: `현재 해석은 ${sampleSize}명 표본 기준입니다. 의사결정 전에 주요 세그먼트를 조금 더 넓게 보는 편이 안전합니다.`,
+      severity: "info",
     });
   }
 
@@ -126,6 +168,15 @@ function buildCautionSignals(params: {
       code: "missing_context",
       label: "맥락 부족",
       description: "제품 설명, 주 타깃, 사용 맥락이 짧으면 결과가 일반론에 가까워질 수 있습니다.",
+      severity: "warning",
+    });
+  }
+
+  if (relevanceMix.low >= 35) {
+    cautions.push({
+      code: "low_relevance_mix",
+      label: "비타깃 표본 섞임",
+      description: `현재 표본의 ${relevanceMix.low.toFixed(0)}%가 low relevance입니다. 전체 평균보다 high/medium relevance 반응을 더 우선해서 읽는 편이 안전합니다.`,
       severity: "warning",
     });
   }
@@ -382,11 +433,10 @@ export function buildSummary(
   } = {}
 ): SimulationSummary {
   const isReview = decisionMode === "review";
-  const avgScoreA =
-    results.reduce((s, r) => s + r.reactionA.purchaseIntent, 0) / results.length;
-  const rawAvgScoreB =
-    results.reduce((s, r) => s + r.reactionB.purchaseIntent, 0) / results.length;
+  const avgScoreA = weightedPurchaseIntent(results, "A");
+  const rawAvgScoreB = weightedPurchaseIntent(results, "B");
   const avgScoreB = isReview ? avgScoreA : rawAvgScoreB;
+  const relevanceMix = buildRelevanceMix(results);
 
   const winner: "A" | "B" | "Tie" =
     isReview
@@ -403,6 +453,7 @@ export function buildSummary(
     avgScoreB,
     riskAxesA,
     riskAxesB,
+    relevanceMix,
     ...context,
   });
   const confidence = buildConfidence({
@@ -429,6 +480,7 @@ export function buildSummary(
     confidence,
     cautionSignals,
     segmentInsights,
+    relevanceMix,
     ...insights,
   };
 }

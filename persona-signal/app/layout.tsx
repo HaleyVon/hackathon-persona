@@ -5,8 +5,8 @@ import "./globals.css";
 const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Persona Signal — AI 메시지 검증 도구",
-  description: "한국인 합성 페르소나 기반 A/B 카피 시뮬레이션",
+  title: "Persona Signal — 제품팀용 pre-validation tool",
+  description: "한국인 합성 페르소나 기반 메시지·가격·기능 사전 검토 도구",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

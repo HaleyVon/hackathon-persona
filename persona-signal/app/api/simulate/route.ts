@@ -21,7 +21,7 @@ const RequestSchema = z.object({
     provinces: z.array(z.string()),
     maritalStatuses: z.array(z.string()).optional().default([]),
   }),
-  sampleSize: z.number().min(1).max(10),
+  sampleSize: z.number().min(10).max(50),
   decisionMode: z.enum(["compare", "review"]).default("compare"),
   inputType: z.enum(["copy", "pricing", "feature", "positioning"]).default("copy"),
 });

@@ -11,8 +11,8 @@ export default function EmptyState() {
         시뮬레이션을 실행해보세요
       </h3>
       <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
-        제품 설명과 A/B 카피를 입력하면<br />
-        한국인 합성 페르소나들의 반응을 비교해드립니다
+        제품 맥락과 검토안을 입력하면<br />
+        타깃 페르소나 관점에서 반응을 구조화해드립니다
       </p>
       <div className="mt-8 grid grid-cols-3 gap-4 w-full max-w-sm">
         {["페르소나 샘플링", "반응 시뮬레이션", "인사이트 집계"].map((step, i) => (

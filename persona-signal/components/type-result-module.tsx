@@ -46,29 +46,52 @@ function AxisBar({
   label: string; valueA: number; valueB?: number; lowLabel: string; highLabel: string;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-600">{label}</span>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-blue-500 font-bold">{valueB === undefined ? "현재안" : "A"} {valueA.toFixed(1)}</span>
+        <span className="text-sm font-semibold text-slate-700">{label}</span>
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <span className="rounded-full bg-blue-100 px-2 py-1 text-blue-700">{valueB === undefined ? "현재안" : "A"} {valueA.toFixed(1)}</span>
           {valueB !== undefined && (
-            <span className="text-violet-500 font-bold">B {valueB.toFixed(1)}</span>
+            <span className="rounded-full bg-violet-100 px-2 py-1 text-violet-700">B {valueB.toFixed(1)}</span>
           )}
         </div>
       </div>
-      <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
-        <div
-          className="absolute top-0 left-0 h-full bg-blue-400 rounded-full transition-all"
-          style={{ width: `${((valueA - 1) / 4) * 100}%` }}
-        />
+      <div className="space-y-2">
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-blue-700">
+            <span>{valueB === undefined ? "현재안" : "A"}</span>
+            <span>{valueA.toFixed(1)}/5</span>
+          </div>
+          <div className="h-3 rounded-full bg-blue-100 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-blue-600 transition-all"
+              style={{ width: `${((valueA - 1) / 4) * 100}%` }}
+            />
+          </div>
+        </div>
         {valueB !== undefined && (
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-violet-700">
+              <span>B</span>
+              <span>{valueB.toFixed(1)}/5</span>
+            </div>
+            <div className="h-3 rounded-full bg-violet-100 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-violet-600 transition-all"
+                style={{ width: `${((valueB - 1) / 4) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+        {valueB === undefined && (
           <div
-            className="absolute top-0 left-0 h-full bg-violet-400/60 rounded-full transition-all"
-            style={{ width: `${((valueB - 1) / 4) * 100}%` }}
-          />
+            className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-500"
+          >
+            이 축은 현재안 단독 기준으로 읽습니다.
+          </div>
         )}
       </div>
-      <div className="flex justify-between text-[10px] text-slate-300">
+      <div className="flex justify-between text-[11px] text-slate-500">
         <span>{lowLabel}</span>
         <span>{highLabel}</span>
       </div>

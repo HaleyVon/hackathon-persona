@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { SimulationRequest, SimulationResponse } from "@/lib/types";
-import { DEMO_REQUEST } from "@/lib/constants";
-import demoData from "@/data/demo-response.json";
+import { DEFAULT_DEMO_SCENARIO, DEMO_SCENARIOS } from "@/data/demo-scenarios";
 import InputForm from "@/components/input-form";
 import EmptyState from "@/components/empty-state";
 import LoadingState from "@/components/loading-state";
@@ -16,10 +15,12 @@ import TypeResultModule from "@/components/type-result-module";
 import DecisionBrief from "@/components/decision-brief";
 
 export default function Home() {
-  const [request, setRequest] = useState<SimulationRequest>(DEMO_REQUEST);
+  const [request, setRequest] = useState<SimulationRequest>(DEFAULT_DEMO_SCENARIO.request);
   const [result, setResult] = useState<SimulationResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedDemoId, setSelectedDemoId] = useState(DEFAULT_DEMO_SCENARIO.id);
+  const [demoMode, setDemoMode] = useState(false);
 
   async function handleRun() {
     const isReview = request.decisionMode === "review";
@@ -34,6 +35,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setDemoMode(false);
     try {
       const res = await fetch("/api/simulate", {
         method: "POST",
@@ -51,14 +53,29 @@ export default function Home() {
   }
 
   function handleDemo() {
-    setRequest(DEMO_REQUEST);
+    setRequest(DEFAULT_DEMO_SCENARIO.request);
+    setSelectedDemoId(DEFAULT_DEMO_SCENARIO.id);
+    setDemoMode(false);
+    setResult(null);
     setError(null);
   }
 
   function handleDemoMode() {
-    setRequest(DEMO_REQUEST);
-    setResult(demoData as SimulationResponse);
+    const scenario = DEMO_SCENARIOS.find((item) => item.id === selectedDemoId) ?? DEFAULT_DEMO_SCENARIO;
+    setDemoMode(true);
+    setRequest(scenario.request);
+    setResult(scenario.response);
     setError(null);
+  }
+
+  function handleDemoScenarioSelect(id: string) {
+    const scenario = DEMO_SCENARIOS.find((item) => item.id === id);
+    if (!scenario) return;
+    setSelectedDemoId(id);
+    setRequest(scenario.request);
+    if (demoMode) {
+      setResult(scenario.response);
+    }
   }
 
   return (
@@ -112,6 +129,36 @@ export default function Home() {
       <div className="flex-1 flex overflow-hidden">
         {/* Left — Input */}
         <div className="w-[38%] min-w-[320px] border-r border-slate-200 bg-white overflow-y-auto p-5">
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-amber-700">데모 케이스</p>
+                <p className="text-sm text-amber-900">메시지·가격·기능 케이스를 바로 불러와 결과를 비교할 수 있습니다.</p>
+              </div>
+              {demoMode && (
+                <span className="rounded-full bg-amber-200 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                  Demo On
+                </span>
+              )}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {DEMO_SCENARIOS.map((scenario) => (
+                <button
+                  key={scenario.id}
+                  onClick={() => handleDemoScenarioSelect(scenario.id)}
+                  disabled={loading}
+                  className={`rounded-xl border px-3 py-2 text-left transition-colors ${
+                    selectedDemoId === scenario.id
+                      ? "border-amber-400 bg-white text-amber-900"
+                      : "border-amber-200 bg-white/70 text-slate-600 hover:border-amber-300"
+                  }`}
+                >
+                  <div className="text-xs font-semibold">{scenario.label}</div>
+                  <div className="mt-1 text-[11px] leading-tight text-slate-400">{scenario.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
           <InputForm value={request} onChange={setRequest} loading={loading} />
         </div>
 
@@ -132,11 +179,7 @@ export default function Home() {
 
           {!loading && result && (
             <div className="space-y-6">
-              <DecisionBrief
-                summary={result.summary}
-                variantA={request.variantA}
-                variantB={request.variantB}
-              />
+              <DecisionBrief summary={result.summary} request={request} />
 
               {/* KPI 카드 */}
               <ResultSummary
@@ -173,17 +216,17 @@ export default function Home() {
                   <RiskRadar
                     axesA={result.summary.riskAxesA}
                     axesB={result.summary.riskAxesB}
+                    inputType={result.summary.inputType ?? "copy"}
                   />
                 </Section>
               )}
 
               {/* 차트 */}
-              <Section title={result.summary.decisionMode === "review" ? "반응 분포" : "비교 점수 분포"}>
+              <Section title={result.summary.decisionMode === "review" ? "반응 분포" : "페르소나별 차이"}>
                 <ScoreChart
                   results={result.personas}
-                  avgScoreA={result.summary.avgScoreA}
-                  avgScoreB={result.summary.avgScoreB}
                   decisionMode={result.summary.decisionMode}
+                  inputType={result.summary.inputType ?? "copy"}
                 />
               </Section>
 
@@ -201,6 +244,7 @@ export default function Home() {
                       result={r}
                       index={i}
                       decisionMode={result.summary.decisionMode}
+                      inputType={result.summary.inputType ?? "copy"}
                     />
                   ))}
                 </div>

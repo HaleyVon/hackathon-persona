@@ -41,6 +41,7 @@ export type SimulationFilters = {
 export type DecisionMode = "compare" | "review";
 export type InputType = "copy" | "pricing" | "feature" | "positioning";
 export type MarketType = "B2B" | "B2C" | "B2B2C";
+export type RelevanceLevel = "high" | "medium" | "low";
 
 export type SimulationRequest = {
   productDescription: string;
@@ -83,6 +84,11 @@ export type VariantReaction = {
 
 export type PersonaComparisonResult = {
   persona: PersonaRecord;
+  relevance: {
+    level: RelevanceLevel;
+    weight: number;
+    reason: string;
+  };
   reactionA: VariantReaction;
   reactionB: VariantReaction;
   preferredVariant: "A" | "B" | "Tie";
@@ -127,13 +133,22 @@ export type RiskAxes = {
   confusionRisk: number;
 };
 
+export type DisplayRiskAxes = {
+  comprehension: number;
+  trust: number;
+  appeal: number;
+  acceptance: number;
+  clarity: number;
+};
+
 export type SummaryConfidenceLevel = "high" | "medium" | "low";
 export type SummaryCautionCode =
   | "small_sample"
   | "mixed_reactions"
   | "missing_context"
   | "close_call"
-  | "residual_risk";
+  | "residual_risk"
+  | "low_relevance_mix";
 
 export type SummaryConfidence = {
   level: SummaryConfidenceLevel;
@@ -166,9 +181,23 @@ export type SimulationSummary = {
   confidence?: SummaryConfidence;
   cautionSignals?: SummaryCautionSignal[];
   segmentInsights?: SegmentInsights;
+  relevanceMix?: Record<RelevanceLevel, number>;
 };
 
 export type SimulationResponse = {
   summary: SimulationSummary;
   personas: PersonaComparisonResult[];
+};
+
+export type ImprovementOption = {
+  strategy: string;
+  content: string;
+  rationale: string;
+  improved?: boolean;
+  improvementDelta?: string;
+  remainingIssues?: string[];
+};
+
+export type ImprovementResponse = {
+  options: ImprovementOption[];
 };
