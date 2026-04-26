@@ -5,6 +5,7 @@ import {
   PROVINCE_OPTIONS, SAMPLE_SIZE_OPTIONS, SEX_OPTIONS,
   OCCUPATION_OPTIONS, MARITAL_OPTIONS, TARGET_PRESETS, AGE_PRESETS,
   DECISION_MODE_OPTIONS, INPUT_TYPE_OPTIONS, MVP_INPUT_TYPE_OPTIONS, MARKET_TYPE_OPTIONS,
+  SAMPLE_SIZE_LABELS,
 } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { getInputTypeCopy } from "@/lib/display";
@@ -399,7 +400,12 @@ export default function InputForm({ value, onChange, loading }: Props) {
                     : "border-slate-200 text-slate-500 hover:border-slate-300"
                 }`}
               >
-                {n}명
+                <span>{n}명</span>
+                <span className={`ml-1 text-[10px] ${
+                  value.sampleSize === n ? "text-blue-500" : "text-slate-400"
+                }`}>
+                  {SAMPLE_SIZE_LABELS[n]}
+                </span>
               </button>
             ))}
           </div>

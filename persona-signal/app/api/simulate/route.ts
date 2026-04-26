@@ -94,6 +94,8 @@ export async function POST(req: NextRequest) {
       productDescription,
       targetCustomer,
       usageContext,
+      ageMin: filters.ageMin,
+      ageMax: filters.ageMax,
     });
 
     return NextResponse.json({ summary, personas: results });

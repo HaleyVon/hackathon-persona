@@ -28,6 +28,12 @@ export const MARITAL_OPTIONS = [
 ];
 
 export const SAMPLE_SIZE_OPTIONS = [10, 20, 30, 50];
+export const SAMPLE_SIZE_LABELS: Record<number, string> = {
+  10: "빠름",
+  20: "추천",
+  30: "정밀",
+  50: "느림",
+};
 
 export const DECISION_MODE_OPTIONS = [
   { value: "compare" as const, label: "A/B 비교", description: "두 안 중 무엇이 더 나은가" },

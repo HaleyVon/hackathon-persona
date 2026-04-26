@@ -518,6 +518,8 @@ export function buildSummary(
     productDescription?: string;
     targetCustomer?: string;
     usageContext?: string;
+    ageMin?: number;
+    ageMax?: number;
   } = {}
 ): SimulationSummary {
   const isReview = decisionMode === "review";
@@ -551,7 +553,7 @@ export function buildSummary(
     avgScoreA,
     avgScoreB,
   });
-  const segmentBreakdown = isReview ? [] : buildSegmentBreakdown(results);
+  const segmentBreakdown = isReview ? [] : buildSegmentBreakdown(results, context.ageMin, context.ageMax);
   const segmentInsights = isReview ? undefined : buildSegmentInsights(segmentBreakdown, winner);
   const unexpectedSignals = buildUnexpectedSignals({
     decisionMode,
@@ -585,7 +587,11 @@ export function buildSummary(
   };
 }
 
-function buildSegmentBreakdown(results: PersonaComparisonResult[]): SegmentBreakdown[] {
+function buildSegmentBreakdown(
+  results: PersonaComparisonResult[],
+  ageMin?: number,
+  ageMax?: number
+): SegmentBreakdown[] {
   const groups: Record<string, {
     preferA: number;
     preferB: number;
@@ -601,7 +607,11 @@ function buildSegmentBreakdown(results: PersonaComparisonResult[]): SegmentBreak
   }> = {};
 
   for (const r of results) {
-    const ageGroup = getAgeGroup(r.persona.age);
+    const ageGroup = getAgeGroup(
+      r.persona.age,
+      ageMin ?? Math.min(...results.map((result) => result.persona.age)),
+      ageMax ?? Math.max(...results.map((result) => result.persona.age))
+    );
     const sex = r.persona.sex;
     const label = `${ageGroup} ${sex}`;
 
@@ -655,7 +665,15 @@ function buildSegmentBreakdown(results: PersonaComparisonResult[]): SegmentBreak
     .sort((a, b) => b.total - a.total);
 }
 
-function getAgeGroup(age: number): string {
+function getAgeGroup(age: number, ageMin: number, ageMax: number): string {
+  const span = ageMax - ageMin;
+  if (span <= 25) {
+    const bucketSize = 5;
+    const start = ageMin + Math.floor((age - ageMin) / bucketSize) * bucketSize;
+    const end = Math.min(ageMax, start + bucketSize - 1);
+    return `${start}-${end}세`;
+  }
+
   if (age < 30) return "20대";
   if (age < 40) return "30대";
   if (age < 50) return "40대";
