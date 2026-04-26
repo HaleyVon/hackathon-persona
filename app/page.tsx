@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
-import { SimulationRequest, SimulationResponse } from "@/lib/types";
+import { PersonaComparisonResult, SimulationRequest, SimulationResponse, SimulationSummary } from "@/lib/types";
 import { DEFAULT_DEMO_SCENARIO, DEMO_SCENARIOS } from "@/data/demo-scenarios";
+import { DISPLAY_AXIS_LABELS, getVariantLabel, toDisplayRiskAxes } from "@/lib/display";
 
 // Landing
 import HeroSection from "@/components/landing/HeroSection";
@@ -10,13 +11,14 @@ import ValueSection from "@/components/landing/ValueSection";
 import PreviewSection from "@/components/landing/PreviewSection";
 import TargetSection from "@/components/landing/TargetSection";
 import CTASection from "@/components/landing/CTASection";
+import FooterSection from "@/components/landing/FooterSection";
 
 // Flow
 import FlowContainer from "@/components/flow/FlowContainer";
 
 // Results
 import ScoreChart from "@/components/score-chart";
-import SegmentTable from "@/components/segment-table";
+import SegmentTable, { SegmentInsightCards } from "@/components/segment-table";
 import PersonaCard from "@/components/persona-card";
 import RiskRadar from "@/components/risk-radar";
 import TypeResultModule from "@/components/type-result-module";
@@ -96,13 +98,14 @@ export default function Home() {
   // --- Landing Phase ---
   if (phase === "landing") {
     return (
-      <div className="bg-white">
+      <div className="bg-white font-[var(--font-geist-sans)]">
         <HeroSection onStart={() => setPhase("flow")} onDemo={handleDemoMode} />
         <ProblemSection />
         <ValueSection />
         <PreviewSection />
         <TargetSection />
         <CTASection onStart={() => setPhase("flow")} onDemo={handleDemoMode} />
+        <FooterSection />
       </div>
     );
   }
@@ -126,8 +129,8 @@ export default function Home() {
 
   // --- Results Phase ---
   return (
-    <div className="min-h-screen bg-slate-50 font-[var(--font-geist-sans)]">
-      <header className="h-14 border-b border-slate-200 bg-white px-6 flex items-center justify-between sticky top-0 z-10">
+    <div className="min-h-screen bg-[#f7f5ef] font-[var(--font-geist-sans)] text-slate-950">
+      <header className="h-14 border-b border-slate-200 bg-white/90 px-6 flex items-center justify-between sticky top-0 z-10 backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
             <span className="text-white text-xs font-bold">PS</span>
@@ -155,18 +158,82 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-8">
         {loading && <LoadingState />}
 
         {!loading && result && (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <DecisionBrief summary={result.summary} request={request} />
 
             {result.summary.unexpectedSignals && result.summary.unexpectedSignals.length > 0 && (
               <UnexpectedSignals signals={result.summary.unexpectedSignals} />
             )}
 
-            <Section title="다음 액션" highlight>
+            <CollapsibleSection title="근거 분석" defaultOpen>
+              <div className="space-y-4">
+                {result.summary.riskAxesA && (
+                  <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          {result.summary.riskAxesB ? "공통 평가축 비교" : "공통 평가축 분석"}
+                        </p>
+                        <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+                          핵심 판단 지표
+                        </h3>
+                      </div>
+                      <p className="text-sm font-medium text-slate-500">
+                        명확성·신뢰도·수용도가 클수록 실행 리스크가 낮습니다.
+                      </p>
+                    </div>
+                    <RiskRadar
+                      axesA={result.summary.riskAxesA}
+                      axesB={result.summary.riskAxesB}
+                      inputType={result.summary.inputType ?? "copy"}
+                    />
+                    <EvidenceHighlights summary={result.summary} request={request} />
+                  </div>
+                )}
+
+                <SegmentInsightCards insights={result.summary.segmentInsights} />
+
+                <div className={`grid gap-4 ${result.summary.segmentBreakdown.length > 0 ? "lg:grid-cols-2" : ""}`}>
+                  {result.summary.segmentBreakdown.length > 0 && (
+                    <SegmentTable
+                      breakdown={result.summary.segmentBreakdown}
+                      insights={result.summary.segmentInsights}
+                      winner={result.summary.winner}
+                      showInsightCards={false}
+                    />
+                  )}
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="mb-3 text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                      {result.summary.decisionMode === "review" ? "반응 분포" : "페르소나별 차이"}
+                    </p>
+                    <ScoreChart
+                      results={result.personas}
+                      decisionMode={result.summary.decisionMode}
+                      inputType={result.summary.inputType ?? "copy"}
+                    />
+                  </div>
+                </div>
+
+                {result.summary.typeAxesA && (
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="mb-3 text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+                      타입별 심층 해석
+                    </p>
+                    <TypeResultModule
+                      inputType={result.summary.inputType ?? "copy"}
+                      axesA={result.summary.typeAxesA}
+                      axesB={result.summary.typeAxesB}
+                    />
+                  </div>
+                )}
+              </div>
+            </CollapsibleSection>
+
+            <Section title="개선안 생성">
               <ImprovementGenerator
                 productDescription={request.productDescription}
                 targetCustomer={request.targetCustomer}
@@ -183,70 +250,7 @@ export default function Home() {
               />
             </Section>
 
-            <CollapsibleSection title="근거 보기" defaultOpen>
-              <div className="space-y-4">
-                {result.summary.segmentBreakdown.length > 0 && (
-                  <SegmentTable
-                    breakdown={result.summary.segmentBreakdown}
-                    insights={result.summary.segmentInsights}
-                    winner={result.summary.winner}
-                  />
-                )}
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {result.summary.riskAxesA && (
-                    <div className="rounded-lg border border-slate-100 bg-white p-4">
-                      <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                        {result.summary.riskAxesB ? "공통 평가축 비교" : "공통 평가축 분석"}
-                      </p>
-                      <RiskRadar
-                        axesA={result.summary.riskAxesA}
-                        axesB={result.summary.riskAxesB}
-                        inputType={result.summary.inputType ?? "copy"}
-                      />
-                    </div>
-                  )}
-
-                  <div className="rounded-lg border border-slate-100 bg-white p-4">
-                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                      {result.summary.decisionMode === "review" ? "반응 분포" : "페르소나별 차이"}
-                    </p>
-                    <ScoreChart
-                      results={result.personas}
-                      decisionMode={result.summary.decisionMode}
-                      inputType={result.summary.inputType ?? "copy"}
-                    />
-                  </div>
-                </div>
-
-                {result.summary.typeAxesA && (
-                  <div className="rounded-lg border border-slate-100 bg-white p-4">
-                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                      타입별 심층 해석
-                    </p>
-                    <TypeResultModule
-                      inputType={result.summary.inputType ?? "copy"}
-                      axesA={result.summary.typeAxesA}
-                      axesB={result.summary.typeAxesB}
-                    />
-                  </div>
-                )}
-              </div>
-            </CollapsibleSection>
-
-            <CollapsibleSection title={`페르소나 원문 반응 ${result.personas.length}명`} defaultOpen={false}>
-              <div className="space-y-3">
-                {result.personas.map((r, i) => (
-                  <PersonaCard
-                    key={i}
-                    result={r}
-                    index={i}
-                    decisionMode={result.summary.decisionMode}
-                    inputType={result.summary.inputType ?? "copy"}
-                  />
-                ))}
-              </div>
-            </CollapsibleSection>
+            <PersonaRawSection result={result} />
 
             <p className="text-xs text-slate-300 text-center pb-4">
               데이터: NVIDIA Nemotron-Personas-Korea (CC BY 4.0) · 이 결과는 AI 시뮬레이션이며 실제 설문을 대체하지 않습니다
@@ -254,6 +258,218 @@ export default function Home() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+const EVIDENCE_AXIS_KEYS = ["clarity", "trust", "acceptance", "appeal", "comprehension"] as const;
+
+function buildEvidenceHighlights(summary: SimulationSummary, request: SimulationRequest): string[] {
+  const inputType = summary.inputType ?? request.inputType;
+  const decisionMode = summary.decisionMode ?? request.decisionMode;
+  const axesA = summary.riskAxesA ? toDisplayRiskAxes(summary.riskAxesA) : undefined;
+  const axesB = summary.riskAxesB ? toDisplayRiskAxes(summary.riskAxesB) : undefined;
+
+  if (!axesA) return [];
+
+  if (decisionMode === "review" || !axesB) {
+    const ranked = EVIDENCE_AXIS_KEYS
+      .map((key) => ({ key, value: axesA[key] }))
+      .sort((a, b) => b.value - a.value);
+    return [
+      `가장 강한 지표는 ${DISPLAY_AXIS_LABELS[ranked[0].key]} ${ranked[0].value.toFixed(1)}/5입니다.`,
+      `보완 우선순위는 ${DISPLAY_AXIS_LABELS[ranked[ranked.length - 1].key]} ${ranked[ranked.length - 1].value.toFixed(1)}/5입니다.`,
+      `주요 우려: ${summary.topConcerns[0] ?? "추가 맥락 확인이 필요합니다."}`,
+    ];
+  }
+
+  if (summary.winner === "Tie") {
+    const gaps = EVIDENCE_AXIS_KEYS
+      .map((key) => ({
+        key,
+        gap: Math.abs(axesA[key] - axesB[key]),
+        leader: axesA[key] >= axesB[key] ? "A" as const : "B" as const,
+      }))
+      .sort((a, b) => b.gap - a.gap);
+    return [
+      `가장 차이가 난 지표는 ${DISPLAY_AXIS_LABELS[gaps[0].key]}이며 ${getVariantLabel(inputType, gaps[0].leader)}가 +${gaps[0].gap.toFixed(1)} 앞섭니다.`,
+      "전체 우열은 작아 두 안의 강점을 합친 재구성이 더 안전합니다.",
+      `주요 우려: ${summary.topConcerns[0] ?? "명확한 우세안이 약합니다."}`,
+    ];
+  }
+
+  const winner = summary.winner;
+  const rival = winner === "A" ? "B" : "A";
+  const winnerAxes = winner === "A" ? axesA : axesB;
+  const rivalAxes = winner === "A" ? axesB : axesA;
+  const deltas = EVIDENCE_AXIS_KEYS
+    .map((key) => ({ key, delta: winnerAxes[key] - rivalAxes[key] }))
+    .sort((a, b) => b.delta - a.delta);
+  const strongest = deltas[0];
+  const rivalStrongest = [...deltas].sort((a, b) => a.delta - b.delta)[0];
+
+  return [
+    `${getVariantLabel(inputType, winner)}은 ${DISPLAY_AXIS_LABELS[strongest.key]} +${Math.max(strongest.delta, 0).toFixed(1)}로 가장 크게 앞섭니다.`,
+    rivalStrongest.delta < -0.15
+      ? `${getVariantLabel(inputType, rival)}은 ${DISPLAY_AXIS_LABELS[rivalStrongest.key]} 우세가 있지만 최종 행동 설득력은 약합니다.`
+      : `${getVariantLabel(inputType, rival)}은 뚜렷하게 앞선 지표가 약합니다.`,
+    `주요 우려: ${summary.topConcerns[0] ?? "후속 검증에서 구매·사용 맥락을 더 확인해야 합니다."}`,
+  ];
+}
+
+function EvidenceHighlights({
+  summary,
+  request,
+}: {
+  summary: SimulationSummary;
+  request: SimulationRequest;
+}) {
+  const highlights = buildEvidenceHighlights(summary, request);
+  if (highlights.length === 0) return null;
+
+  return (
+    <div className="mt-5 grid gap-3 md:grid-cols-3">
+      {highlights.map((item, index) => (
+        <div key={item} className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+          <p className="mb-1 text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
+            Evidence {index + 1}
+          </p>
+          <p className="text-sm font-semibold leading-relaxed text-slate-800">{item}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PersonaRawSection({ result }: { result: SimulationResponse }) {
+  const [open, setOpen] = useState(false);
+  const inputType = result.summary.inputType ?? "copy";
+  const decisionMode = result.summary.decisionMode ?? "compare";
+  const teasers = pickPersonaTeasers(result.personas, result.summary.winner);
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+      >
+        <span>
+          <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+            페르소나 원문 반응 {result.personas.length}명
+          </span>
+          <span className="mt-0.5 block text-xs text-slate-400">
+            대표 반응 2개만 먼저 보고, 필요할 때 전체 원문을 펼칩니다.
+          </span>
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-slate-400">
+          {open ? "접기" : "전체 펼치기"}
+          <span className="text-sm leading-none">{open ? "▲" : "▼"}</span>
+        </span>
+      </button>
+
+      <div className="border-t border-slate-200 px-4 py-4">
+        {!open && (
+          <div className="grid gap-3 md:grid-cols-2">
+            {teasers.map((item) => (
+              <PersonaTeaser
+                key={item.index}
+                result={item.result}
+                index={item.index}
+                decisionMode={decisionMode}
+                inputType={inputType}
+              />
+            ))}
+          </div>
+        )}
+
+        {open && (
+          <div className="space-y-3">
+            {result.personas.map((r, i) => (
+              <PersonaCard
+                key={i}
+                result={r}
+                index={i}
+                decisionMode={decisionMode}
+                inputType={inputType}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function pickPersonaTeasers(
+  personas: PersonaComparisonResult[],
+  winner: SimulationSummary["winner"]
+): Array<{ result: PersonaComparisonResult; index: number }> {
+  if (personas.length <= 2) {
+    return personas.map((result, index) => ({ result, index }));
+  }
+
+  const preferred = winner === "Tie"
+    ? personas.findIndex((item) => item.preferredVariant === "Tie")
+    : personas.findIndex((item) => item.preferredVariant === winner);
+  const opposing = winner === "Tie"
+    ? personas.findIndex((item) => item.preferredVariant !== "Tie")
+    : personas.findIndex((item) => item.preferredVariant !== winner);
+
+  const indexes = [preferred, opposing]
+    .filter((index) => index >= 0)
+    .filter((index, position, arr) => arr.indexOf(index) === position);
+
+  while (indexes.length < 2 && indexes.length < personas.length) {
+    const next = indexes.length;
+    if (!indexes.includes(next)) indexes.push(next);
+    else indexes.push(next + 1);
+  }
+
+  return indexes.slice(0, 2).map((index) => ({ result: personas[index], index }));
+}
+
+function PersonaTeaser({
+  result,
+  index,
+  decisionMode,
+  inputType,
+}: {
+  result: PersonaComparisonResult;
+  index: number;
+  decisionMode: NonNullable<SimulationSummary["decisionMode"]>;
+  inputType: NonNullable<SimulationSummary["inputType"]>;
+}) {
+  const { persona, relevance, preferredVariant, preferenceReason, reactionA, reactionB } = result;
+  const isReview = decisionMode === "review";
+  const quote = isReview
+    ? reactionA.oneSentenceReaction
+    : preferredVariant === "B"
+      ? reactionB.oneSentenceReaction
+      : reactionA.oneSentenceReaction;
+  const badge = isReview
+    ? "단일 검토"
+    : preferredVariant === "Tie"
+      ? "동률"
+      : `${getVariantLabel(inputType, preferredVariant)} 선호`;
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-bold text-slate-400">P{index + 1}</span>
+        <span className="text-sm font-bold text-slate-700">
+          {persona.age}세 {persona.sex}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+          {persona.occupation}
+        </span>
+        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+          적합도 {relevance.level}
+        </span>
+      </div>
+      <p className="mb-2 text-xs font-bold text-slate-500">{badge}</p>
+      <p className="text-sm font-semibold leading-relaxed text-slate-800">&quot;{quote || preferenceReason}&quot;</p>
+      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500">{preferenceReason}</p>
     </div>
   );
 }
@@ -270,7 +486,7 @@ function CollapsibleSection({
   const [open, setOpen] = useState(defaultOpen ?? false);
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white">
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -279,19 +495,15 @@ function CollapsibleSection({
         <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{title}</span>
         <span className="text-xs font-semibold text-slate-400">{open ? "접기" : "펼치기"}</span>
       </button>
-      {open && <div className="border-t border-slate-100 p-4">{children}</div>}
+      {open && <div className="border-t border-slate-200 p-4">{children}</div>}
     </div>
   );
 }
 
-function Section({
-  title, children, highlight,
-}: {
-  title: string; children: React.ReactNode; highlight?: boolean;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className={`rounded-xl border p-4 bg-white ${highlight ? "border-blue-200 shadow-sm shadow-blue-50" : "border-slate-100"}`}>
-      <h3 className={`text-xs font-bold mb-3 uppercase tracking-wider ${highlight ? "text-blue-600" : "text-slate-400"}`}>
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 className="text-[11px] font-black mb-3 uppercase tracking-[0.18em] text-slate-400">
         {title}
       </h3>
       {children}

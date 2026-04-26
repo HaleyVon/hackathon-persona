@@ -50,34 +50,34 @@ function AxisBar({
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-slate-700">{label}</span>
         <div className="flex items-center gap-2 text-xs font-bold">
-          <span className="rounded-full bg-blue-100 px-2 py-1 text-blue-700">{valueB === undefined ? "현재안" : "A"} {valueA.toFixed(1)}</span>
+          <span className="rounded-full border border-cyan-200 bg-white px-2 py-1 text-cyan-800">{valueB === undefined ? "현재안" : "A"} {valueA.toFixed(1)}</span>
           {valueB !== undefined && (
-            <span className="rounded-full bg-violet-100 px-2 py-1 text-violet-700">B {valueB.toFixed(1)}</span>
+            <span className="rounded-full border border-indigo-200 bg-white px-2 py-1 text-indigo-800">B {valueB.toFixed(1)}</span>
           )}
         </div>
       </div>
       <div className="space-y-2">
         <div className="space-y-1">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-blue-700">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-cyan-800">
             <span>{valueB === undefined ? "현재안" : "A"}</span>
             <span>{valueA.toFixed(1)}/5</span>
           </div>
-          <div className="h-3 rounded-full bg-blue-100 overflow-hidden">
+          <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
             <div
-              className="h-full rounded-full bg-blue-600 transition-all"
+              className="h-full rounded-full bg-cyan-600 transition-all"
               style={{ width: `${((valueA - 1) / 4) * 100}%` }}
             />
           </div>
         </div>
         {valueB !== undefined && (
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-violet-700">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-indigo-800">
               <span>B</span>
               <span>{valueB.toFixed(1)}/5</span>
             </div>
-            <div className="h-3 rounded-full bg-violet-100 overflow-hidden">
+            <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
               <div
-                className="h-full rounded-full bg-violet-600 transition-all"
+                className="h-full rounded-full bg-indigo-600 transition-all"
                 style={{ width: `${((valueB - 1) / 4) * 100}%` }}
               />
             </div>
@@ -104,8 +104,8 @@ export default function TypeResultModule({ inputType, axesA, axesB }: Props) {
   if (!config || config.axes.length === 0) return null;
 
   return (
-    <div className="rounded-xl border border-indigo-200 shadow-sm shadow-indigo-50 p-4 bg-white">
-      <h3 className="text-xs font-bold mb-4 uppercase tracking-wider text-indigo-600">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 className="text-[11px] font-black mb-4 uppercase tracking-[0.18em] text-slate-400">
         {config.title}
       </h3>
       <div className="space-y-4">

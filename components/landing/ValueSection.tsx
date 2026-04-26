@@ -1,56 +1,62 @@
+import { ClipboardCheck, Crosshair, LineChart, UsersRound } from "lucide-react";
+
+const steps = [
+  {
+    icon: ClipboardCheck,
+    step: "01",
+    title: "설정",
+    desc: "검토 타입, 제품 맥락, 비교할 안을 입력합니다.",
+  },
+  {
+    icon: UsersRound,
+    step: "02",
+    title: "시뮬레이션",
+    desc: "5,000명 한국어 페르소나 중 타깃 표본이 즉시 평가합니다.",
+  },
+  {
+    icon: LineChart,
+    step: "03",
+    title: "분석",
+    desc: "세그먼트별 반응, 평가축, 숨은 리스크를 분리합니다.",
+  },
+  {
+    icon: Crosshair,
+    step: "04",
+    title: "인사이트",
+    desc: "실행 가능한 재작성 방향과 다음 검증 대상을 제안합니다.",
+  },
+];
+
 export default function ValueSection() {
   return (
-    <section className="bg-white py-24 px-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">How It Works</span>
-          <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-            한국인 페르소나 5,000명이 당신의 아이디어에 응답합니다
-          </h2>
-        </div>
+    <section id="workflow" className="bg-white px-5 py-28 sm:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-16 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+          <div className="lg:sticky lg:top-10">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600">How It Works</p>
+            <h2 className="mt-4 max-w-md text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
+              단 4단계로 인사이트를 얻으세요
+            </h2>
+            <p className="mt-6 max-w-md text-base font-medium leading-7 text-slate-500">
+              제품팀이 매주 반복하는 고영향 의사결정을, 리서치 대기 없이 빠르게 구조화합니다.
+            </p>
+          </div>
 
-        <div className="grid sm:grid-cols-2 gap-6">
-          {[
-            {
-              badge: "카피 / 메시지",
-              badgeColor: "bg-indigo-50 text-indigo-600 border-indigo-100",
-              title: "어떤 메시지가 더 설득력 있나요?",
-              desc: "두 카피 안을 넣으면, 타깃 세그먼트별로 이해도·매력도·신뢰도·저항감을 비교합니다.",
-              detail: "\"30대 직장인은 A안이 더 명확했지만, 40대 자영업자는 B안에 더 끌렸습니다.\"",
-            },
-            {
-              badge: "가격 / 플랜",
-              badgeColor: "bg-emerald-50 text-emerald-600 border-emerald-100",
-              title: "이 가격이 납득될까요?",
-              desc: "두 플랜 구조나 가격대를 비교하거나, 단일 가격의 수용도를 세그먼트별로 측정합니다.",
-              detail: "\"월 9,900원은 20대에게 부담 없지만, 주부층에서 가격 저항이 감지됩니다.\"",
-            },
-            {
-              badge: "기능 필요성",
-              badgeColor: "bg-amber-50 text-amber-600 border-amber-100",
-              title: "이 기능이 진짜 필요할까요?",
-              desc: "기능 아이디어 하나를 넣으면, 타깃이 얼마나 필요하다고 느끼는지 긴급도와 대안 인식을 측정합니다.",
-              detail: "\"기능 아이디어 자체는 좋지만, 기존 엑셀로 충분하다는 반응이 3명 중 1명입니다.\"",
-            },
-            {
-              badge: "놓치기 쉬운 신호",
-              badgeColor: "bg-rose-50 text-rose-600 border-rose-100",
-              title: "숨겨진 리스크를 먼저 발견하세요",
-              desc: "명확하게 이해했지만 행동하지 않는 세그먼트, 결제자-사용자 불일치, 신뢰 갭 같은 신호를 자동으로 감지합니다.",
-              detail: "\"이해도는 높은데 구매 의향이 낮은 세그먼트가 있습니다. 신뢰 문제일 수 있습니다.\"",
-            },
-          ].map(({ badge, badgeColor, title, desc, detail }) => (
-            <div key={title} className="rounded-2xl border border-slate-100 p-6 hover:border-slate-200 transition-colors">
-              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full border mb-4 ${badgeColor}`}>
-                {badge}
-              </span>
-              <h3 className="text-base font-bold text-slate-800 mb-2">{title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed mb-3">{desc}</p>
-              <p className="text-xs text-slate-400 italic leading-relaxed bg-slate-50 rounded-lg px-3 py-2">
-                {detail}
-              </p>
-            </div>
-          ))}
+          <div className="relative space-y-5">
+            <div className="absolute bottom-8 left-7 top-8 hidden w-px bg-blue-100 sm:block" />
+            {steps.map(({ icon: Icon, step, title, desc }) => (
+              <article key={step} className="relative grid gap-5 rounded-xl border border-slate-200 bg-slate-50 p-6 sm:grid-cols-[3.5rem_1fr] sm:p-7">
+                <div className="z-10 flex h-14 w-14 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow-sm">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-blue-600">{step}</p>
+                  <h3 className="mt-2 text-2xl font-black text-slate-950">{title}</h3>
+                  <p className="mt-3 text-sm font-medium leading-7 text-slate-500">{desc}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>

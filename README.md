@@ -130,7 +130,7 @@ Persona Signal의 핵심은 평균 점수로는 보이지 않는 **놓치기 쉬
 
 | 영역 | 구현 |
 | --- | --- |
-| Frontend | Next.js App Router, React, Tailwind CSS, Recharts, Three.js |
+| Frontend | Next.js App Router, React, Tailwind CSS, Recharts, premium SaaS landing UI |
 | Backend | Next.js Route Handler, Zod validation |
 | AI | OpenAI `gpt-4o-mini`, 페르소나별 병렬 평가, 요약/개선안 생성 |
 | Data | Supabase PostgreSQL, NVIDIA Nemotron-Personas-Korea 기반 5,000개 한국어 페르소나 |

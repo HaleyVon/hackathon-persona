@@ -1,221 +1,233 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import type * as ThreeTypes from "three";
+
+import {
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  Gauge,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
+  UsersRound,
+  Zap,
+} from "lucide-react";
 
 interface Props {
   onStart: () => void;
   onDemo: () => void;
 }
 
+const segments = [
+  ["20대 대학생", "4.1", "3.2", "w-[86%]", "w-[58%]"],
+  ["30대 직장인", "4.0", "2.6", "w-[80%]", "w-[42%]"],
+  ["40대 자영업자", "3.6", "3.9", "w-[63%]", "w-[76%]"],
+  ["주부", "3.7", "3.1", "w-[68%]", "w-[52%]"],
+  ["기타 / 비타깃", "2.1", "1.8", "w-[36%]", "w-[28%]"],
+];
+
+const stats = [
+  { icon: UsersRound, label: "5,000+", value: "Korean synthetic personas" },
+  { icon: Clock3, label: "10 Seconds", value: "decision-ready insight" },
+  { icon: ShieldCheck, label: "Interview-Free", value: "risk signal first" },
+];
+
 export default function HeroSection({ onStart, onDemo }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    let animId: number;
-    let THREE: typeof import("three");
-
-    async function init() {
-      THREE = await import("three");
-      if (!canvas) return;
-
-      const renderer = new THREE.WebGLRenderer({ canvas: canvas as HTMLCanvasElement, alpha: true, antialias: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
-
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(60, canvas.offsetWidth / canvas.offsetHeight, 0.1, 100);
-      camera.position.z = 5;
-
-      // Floating wireframe spheres
-      const sphereGeo = new THREE.SphereGeometry(1, 16, 16);
-      const sphereMat = new THREE.MeshBasicMaterial({
-        color: 0x93c5fd, // blue-300
-        wireframe: true,
-        transparent: true,
-        opacity: 0.18,
-      });
-
-      const spheres: ThreeTypes.Mesh[] = [];
-      const positions = [
-        [-3.5, 1.2, -2], [3.2, -0.8, -3], [-1.5, -2, -1.5],
-        [2.5, 2.2, -2.5], [0.5, -1.5, -3.5],
-      ] as [number, number, number][];
-      const scales = [1.1, 0.85, 0.6, 0.75, 0.5];
-
-      positions.forEach(([x, y, z], i) => {
-        const mesh = new THREE.Mesh(sphereGeo, sphereMat.clone());
-        mesh.position.set(x, y, z);
-        mesh.scale.setScalar(scales[i]);
-        scene.add(mesh);
-        spheres.push(mesh);
-      });
-
-      // Floating rings
-      const ringGeo = new THREE.TorusGeometry(1.2, 0.02, 8, 40);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: 0xe2e8f0, // slate-200
-        transparent: true,
-        opacity: 0.35,
-      });
-
-      const rings: ThreeTypes.Mesh[] = [];
-      const ringData: [number, number, number, number, number, number][] = [
-        [2, 0.5, -2, 0.4, 0.2, 0],
-        [-2.5, -0.5, -2.5, 0.1, 0.3, 0.5],
-      ];
-      ringData.forEach(([x, y, z, rx, ry, rz]) => {
-        const ring = new THREE.Mesh(ringGeo, ringMat.clone());
-        ring.position.set(x, y, z);
-        ring.rotation.set(rx, ry, rz);
-        scene.add(ring);
-        rings.push(ring);
-      });
-
-      let t = 0;
-      function animate() {
-        animId = requestAnimationFrame(animate);
-        t += 0.003;
-
-        spheres.forEach((s, i) => {
-          s.rotation.x += 0.002 + i * 0.001;
-          s.rotation.y += 0.003 + i * 0.0005;
-          s.position.y = positions[i][1] + Math.sin(t + i) * 0.15;
-        });
-
-        rings.forEach((r, i) => {
-          r.rotation.x += 0.004 + i * 0.002;
-          r.rotation.z += 0.002;
-          r.position.y = ringData[i][1] + Math.sin(t * 0.7 + i * 1.5) * 0.1;
-        });
-
-        renderer.render(scene, camera);
-      }
-
-      animate();
-
-      const onResize = () => {
-        if (!canvas) return;
-        camera.aspect = canvas.offsetWidth / canvas.offsetHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
-      };
-      window.addEventListener("resize", onResize);
-
-      return () => {
-        window.removeEventListener("resize", onResize);
-        cancelAnimationFrame(animId);
-        renderer.dispose();
-      };
-    }
-
-    const cleanup = init();
-    return () => {
-      cleanup.then((fn) => fn?.());
-    };
-  }, []);
-
   return (
-    <section className="relative min-h-screen bg-white overflow-hidden flex flex-col">
-      {/* Three.js canvas */}
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none"
-      />
+    <section className="relative min-h-screen overflow-hidden border-b border-slate-200 bg-[#f8fafc] text-slate-950">
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,0.04)_1px,transparent_1px),linear-gradient(180deg,rgba(15,23,42,0.04)_1px,transparent_1px)] bg-[size:72px_72px]" />
+      <div className="absolute left-[37%] top-10 h-[760px] w-[760px] rounded-full border border-blue-500/15" />
+      <div className="absolute left-[43%] top-28 h-[520px] w-[520px] rounded-full border border-blue-500/15" />
+      <div className="absolute left-[49%] top-48 h-72 w-72 rounded-full border border-blue-500/15" />
+      <div className="absolute left-[56%] top-[310px] hidden h-8 w-8 rounded-full bg-blue-600 shadow-[0_0_80px_rgba(37,99,235,0.55)] sm:block" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white to-transparent" />
 
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-white/0 to-white pointer-events-none" />
-
-      {/* Logo top-left */}
-      <div className="relative z-10 px-8 pt-8 flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-          <span className="text-white text-xs font-bold">PS</span>
+      <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
+        <button type="button" onClick={onStart} className="flex items-center gap-3 text-left">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs font-black text-white shadow-lg shadow-blue-600/20">
+            PS
+          </span>
+          <span className="text-base font-extrabold tracking-tight">Persona Signal</span>
+        </button>
+        <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-500 md:flex">
+          <a href="#product" className="transition-colors hover:text-slate-950">Product</a>
+          <a href="#signals" className="transition-colors hover:text-slate-950">Use Cases</a>
+          <a href="#workflow" className="transition-colors hover:text-slate-950">How It Works</a>
+        </nav>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onDemo}
+            className="hidden rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300 sm:inline-flex"
+          >
+            View demo
+          </button>
+          <button
+            type="button"
+            onClick={onStart}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-black text-white shadow-xl shadow-blue-600/20 transition hover:bg-blue-700"
+          >
+            Start <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
-        <span className="font-bold text-slate-800 text-sm tracking-tight">Persona Signal</span>
-      </div>
+      </header>
 
-      {/* Hero content */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center pb-20">
-        <div
-          className="transition-all duration-1000"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(24px)",
-          }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-            <span className="text-xs font-semibold text-blue-600 tracking-wide">AI-Powered Pre-Validation</span>
+      <div className="relative z-10 mx-auto grid min-h-[calc(100vh-72px)] max-w-7xl items-center gap-10 px-5 pb-14 pt-8 sm:px-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="max-w-3xl">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-blue-700 shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" />
+            AI Pre-validation Platform
           </div>
-
-          <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 leading-tight tracking-tight max-w-2xl mx-auto">
-            제품을 출시하기 전에
-            <br />
-            <span className="text-blue-600">고객 반응</span>을 먼저 예측하세요
+          <h1 className="max-w-3xl text-[clamp(3.25rem,7vw,6.9rem)] font-black uppercase leading-[0.9] tracking-normal text-slate-950">
+            <span className="block">Validate</span>
+            <span className="block">Before</span>
+            <span className="block">You Build</span>
           </h1>
-
-          <p
-            className="mt-6 text-lg text-slate-500 max-w-xl mx-auto leading-relaxed transition-all duration-1000 delay-200"
-            style={{
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(16px)",
-            }}
-          >
-            5,000명의 한국인 합성 페르소나가 여러분의 카피, 가격, 기능안을 평가합니다.
-            <br />
-            10초면 인터뷰 없이 세그먼트별 반응과 리스크를 확인할 수 있습니다.
+          <p className="mt-7 max-w-xl text-lg font-medium leading-8 text-slate-600">
+            카피, 가격, 기능안을 출시 전에 검증하세요.
+            5,000명 합성 페르소나가 세그먼트별 반응과 숨은 리스크를 보여줍니다.
           </p>
-
-          <div
-            className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3 transition-all duration-1000 delay-400"
-            style={{
-              opacity: visible ? 1 : 0,
-              transform: visible ? "translateY(0)" : "translateY(12px)",
-            }}
-          >
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <button
+              type="button"
               onClick={onStart}
-              className="px-7 py-3.5 rounded-xl bg-blue-600 text-white font-semibold text-base hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-lg bg-blue-600 px-7 text-base font-black text-white shadow-2xl shadow-blue-600/25 transition hover:-translate-y-0.5 hover:bg-blue-700"
             >
-              시뮬레이션 시작하기 →
+              시뮬레이션 시작하기 <ArrowRight className="h-5 w-5" />
             </button>
             <button
+              type="button"
               onClick={onDemo}
-              className="px-5 py-3.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 font-semibold text-sm hover:bg-amber-100 transition-colors"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-lg border border-amber-300 bg-white px-7 text-base font-black text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-400 hover:bg-amber-50"
             >
-              ⚡ 데모 결과 바로 보기
+              <Zap className="h-5 w-5 text-amber-500" />
+              데모 결과 바로 보기
             </button>
+          </div>
+          <div className="mt-9 grid max-w-2xl gap-4 sm:grid-cols-3">
+            {stats.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow-sm">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span>
+                  <span className="block text-sm font-black text-slate-950">{label}</span>
+                  <span className="block text-xs font-semibold text-slate-500">{value}</span>
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Stats row */}
-        <div
-          className="mt-16 flex flex-wrap justify-center gap-8 transition-all duration-1000 delay-600"
-          style={{
-            opacity: visible ? 1 : 0,
-            transform: visible ? "translateY(0)" : "translateY(8px)",
-          }}
-        >
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className="relative z-10 flex justify-center pb-8">
-        <div className="flex flex-col items-center gap-1 animate-bounce">
-          <span className="text-xs text-slate-300">스크롤</span>
-          <svg className="w-4 h-4 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
+        <ProductPanel />
       </div>
     </section>
+  );
+}
+
+function ProductPanel() {
+  return (
+    <div id="product" className="relative mx-auto w-full max-w-3xl">
+      <div className="absolute -left-8 top-8 hidden w-72 rounded-xl border border-slate-200 bg-white/90 p-5 shadow-2xl shadow-slate-900/10 backdrop-blur md:block">
+        <div className="mb-3 text-xs font-black uppercase tracking-wider text-slate-500">Decision Brief</div>
+        <div className="mb-3 inline-flex rounded-full bg-blue-600 px-2.5 py-1 text-xs font-black text-white">A안 권장</div>
+        <p className="text-sm font-semibold leading-6 text-slate-700">
+          A안이 더 명확하고 신뢰를 만듭니다. B안은 매력적이지만 30대 직장인 세그먼트에서 저항이 감지됩니다.
+        </p>
+        <button className="mt-4 text-sm font-black text-blue-600" type="button">전체 요약 보기 →</button>
+      </div>
+
+      <div className="ml-auto grid w-full gap-4 lg:w-[86%]">
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            ["A안 종합 점수", "3.8", "이해도 높음"],
+            ["B안 종합 점수", "3.2", "혼란 리스크 감지"],
+            ["권장 안", "A안", "6개 세그먼트 중 4개"],
+          ].map(([label, value, sub]) => (
+            <div key={label} className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-xl shadow-slate-900/5 backdrop-blur">
+              <p className="text-[11px] font-bold text-slate-400">{label}</p>
+              <p className="mt-2 text-3xl font-black tracking-tight text-slate-950">
+                {value}
+                {value.match(/^\d/) && <span className="text-base font-bold text-slate-400"> /5</span>}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{sub}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1.12fr_0.88fr]">
+          <div className="rounded-xl border border-slate-200 bg-white/95 p-5 shadow-2xl shadow-slate-900/10 backdrop-blur">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wider text-blue-600">Segment Response</p>
+                <h3 className="mt-1 text-lg font-black text-slate-950">세그먼트 비교</h3>
+              </div>
+              <div className="flex items-center gap-3 text-xs font-bold text-slate-500">
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-blue-600" />A안</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-slate-300" />B안</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {segments.map(([name, a, b, aw, bw]) => (
+                <div key={name} className="grid grid-cols-[7.5rem_1fr_2.25rem_2.25rem] items-center gap-3 text-xs">
+                  <span className="font-bold text-slate-600">{name}</span>
+                  <span className="space-y-1.5">
+                    <span className="block h-2 rounded-full bg-slate-100">
+                      <span className={`block h-2 rounded-full bg-blue-600 ${aw}`} />
+                    </span>
+                    <span className="block h-2 rounded-full bg-slate-100">
+                      <span className={`block h-2 rounded-full bg-slate-300 ${bw}`} />
+                    </span>
+                  </span>
+                  <span className="font-black text-slate-900">{a}</span>
+                  <span className="font-bold text-slate-400">{b}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white/95 p-5 shadow-2xl shadow-slate-900/10 backdrop-blur">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-xs font-black uppercase tracking-wider text-slate-500">Risk Profile</p>
+              <Gauge className="h-4 w-4 text-blue-600" />
+            </div>
+            <div className="relative mx-auto aspect-square max-w-64">
+              <div className="absolute inset-3 rounded-full border border-slate-200" />
+              <div className="absolute inset-10 rounded-full border border-slate-200" />
+              <div className="absolute inset-[4.25rem] rounded-full border border-slate-200" />
+              <div className="absolute left-1/2 top-4 h-[calc(100%-2rem)] w-px -translate-x-1/2 bg-slate-200" />
+              <div className="absolute left-4 top-1/2 h-px w-[calc(100%-2rem)] -translate-y-1/2 bg-slate-200" />
+              <div className="absolute inset-[18%] rotate-12 rounded-[42%] border-2 border-blue-600 bg-blue-500/10" />
+              <div className="absolute inset-[27%] -rotate-6 rounded-[42%] border-2 border-slate-400 bg-slate-400/10" />
+              <div className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600" />
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-bold text-slate-500">
+              {["명확성", "신뢰도", "가치 인식", "수용도"].map((item) => (
+                <span key={item} className="rounded-md bg-slate-50 px-2 py-1">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="ml-auto w-full rounded-xl border border-amber-200 bg-amber-50/95 p-4 shadow-2xl shadow-amber-900/10 backdrop-blur lg:w-[72%]">
+          <div className="mb-3 flex items-center gap-2 text-sm font-black text-amber-800">
+            <TriangleAlert className="h-4 w-4" />
+            놓치기 쉬운 신호
+          </div>
+          <div className="grid gap-2 text-xs font-semibold leading-5 text-amber-900 sm:grid-cols-2">
+            <p className="rounded-lg bg-white/60 p-3">명확하지만 행동 안 함: 구매 의향은 2.8입니다.</p>
+            <p className="rounded-lg bg-white/60 p-3">비타깃 표본 희석: 관련도 low 페르소나 30% 포함.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute -bottom-8 left-4 hidden items-center gap-2 rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-black text-blue-700 shadow-xl shadow-blue-900/10 md:flex">
+        <CheckCircle2 className="h-4 w-4" />
+        Signals ready for product review
+      </div>
+      <div className="absolute -right-4 top-1/2 hidden rounded-full border border-slate-200 bg-white p-3 text-blue-600 shadow-xl shadow-blue-900/10 lg:block">
+        <BarChart3 className="h-5 w-5" />
+      </div>
+    </div>
   );
 }

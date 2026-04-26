@@ -25,23 +25,23 @@ export default function RiskRadar({ axesA, axesB, inputType = "copy" }: Props) {
 
   return (
     <div>
-      <p className="text-xs text-slate-400 mb-1">
-        {axesB ? "공통 5축 비교" : "공통 5축 분석"} <span className="text-slate-300">(높을수록 긍정적)</span>
+      <p className="mb-2 text-sm font-semibold text-slate-500">
+        {axesB ? "공통 5축 비교" : "공통 5축 분석"} <span className="font-normal text-slate-400">(높을수록 긍정적)</span>
       </p>
-      <ResponsiveContainer width="100%" height={240}>
-        <RadarChart data={data} margin={{ top: 4, right: 24, bottom: 4, left: 24 }}>
-          <PolarGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+      <ResponsiveContainer width="100%" height={360}>
+        <RadarChart data={data} margin={{ top: 16, right: 52, bottom: 16, left: 52 }}>
+          <PolarGrid strokeDasharray="3 3" stroke="#cbd5e1" />
           <PolarAngleAxis
             dataKey="axis"
-            tick={{ fontSize: 11, fill: "#64748b" }}
+            tick={{ fontSize: 13, fontWeight: 700, fill: "#334155" }}
           />
           <Radar
             name={axesB ? getVariantLabel(inputType, "A") : getVariantLabel(inputType, "A", "review")}
             dataKey="A"
-            stroke="#3b82f6"
-            fill="#3b82f6"
-            fillOpacity={0.15}
-            strokeWidth={2}
+            stroke="#0891b2"
+            fill="#0891b2"
+            fillOpacity={0.18}
+            strokeWidth={3}
           />
           {axesB && (
             <Radar
@@ -49,20 +49,21 @@ export default function RiskRadar({ axesA, axesB, inputType = "copy" }: Props) {
               dataKey="B"
               stroke="#7c3aed"
               fill="#7c3aed"
-              fillOpacity={0.15}
-              strokeWidth={2}
+              fillOpacity={0.18}
+              strokeWidth={3}
+              strokeDasharray="7 4"
             />
           )}
           {axesB && (
             <Legend
               iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: 11 }}
+              iconSize={10}
+              wrapperStyle={{ fontSize: 13, fontWeight: 700, paddingTop: 8 }}
             />
           )}
           <Tooltip
             formatter={(v, name) => [`${Number(v).toFixed(1)} / 5`, name]}
-            contentStyle={{ fontSize: 11 }}
+            contentStyle={{ fontSize: 12, borderRadius: 10 }}
           />
         </RadarChart>
       </ResponsiveContainer>

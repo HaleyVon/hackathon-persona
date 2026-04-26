@@ -7,7 +7,7 @@
 
 ## 현재 상태
 
-**단계:** 랜딩 + 플로우 UI + 데모 시나리오 전면 완성
+**단계:** 프로덕트 레벨 랜딩 + 플로우 UI + 데모 시나리오 전면 완성
 **마지막 업데이트:** 2026-04-26
 **남은 시간(추정):** 해커톤 진행 중
 
@@ -61,6 +61,8 @@
 - [x] 레포 문서/구조 정리: 완료된 설계·피치·임시 계획 문서 제거, 중복 Supabase 설정 제거
 - [x] Next.js 앱을 루트로 이동: `persona-signal/` 하위 앱 구조를 단일 제품 레포 구조로 정리
 - [x] 에이전트 규칙 문서 갱신: 현재 표본 수 정책(`10/20/30/50`)과 앱 구조에 맞게 `CLAUDE.md` 정리
+- [x] 결과 화면 가시성 개선: Verdict 압축 판정문/대형 타이포그래피, full-width 레이더, Evidence 핵심 차이 3줄, 대표 페르소나 2개 티저 추가
+- [x] 결과 화면 리포트 톤 정리: 중복 문장 축소, 색상 체계 단순화, Decision Memo / Risk Watch / Evidence / Appendix 구조로 정돈
 
 ### 인프라 / 데이터
 - [x] Supabase 프로젝트 연결 (`ijptkmnrhvrujvyvrpth`)
@@ -131,6 +133,10 @@
 - [x] 빌드 검증 완료 (`npm run build` 통과, TypeScript 오류 없음)
 - [x] README 피치 문서화: Persona Signal 대외명, 고영향 의사결정, Unexpected Signals 전면 배치, 발표용 메시지 부록 추가
 - [x] 결과 화면 progressive disclosure 적용: Verdict → Signals → Next Action → Evidence → Persona Raw 구조로 재배치
+- [x] 랜딩 프로덕션 디자인 고도화: bold English hero key message, signal/radar background, floating report panels, 문제/워크플로우/샘플 리포트/타깃/CTA 섹션 재구성
+- [x] 랜딩 검증 완료: `npm run lint`, `npm run build`, Playwright desktop/mobile screenshot, CTA → flow, demo CTA → results 확인
+- [x] 랜딩 정밀 조정: hero key message를 `Validate Before You Build`로 압축하고, 문제/워크플로우 섹션을 세로형 카드 리듬으로 재배치해 섹션 간 여백과 완성도 개선
+- [x] 랜딩 CTA/푸터 정리: Sample Output 보조문구 제거, Get Started 섹션 중앙 정렬, `Made by Haley` 푸터 추가
 
 ---
 
