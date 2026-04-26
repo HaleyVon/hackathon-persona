@@ -15,15 +15,14 @@ import CTASection from "@/components/landing/CTASection";
 import FlowContainer from "@/components/flow/FlowContainer";
 
 // Results
-import ResultSummary from "@/components/result-summary";
 import ScoreChart from "@/components/score-chart";
 import SegmentTable from "@/components/segment-table";
-import InsightCards from "@/components/insight-cards";
 import PersonaCard from "@/components/persona-card";
 import RiskRadar from "@/components/risk-radar";
 import TypeResultModule from "@/components/type-result-module";
 import DecisionBrief from "@/components/decision-brief";
 import UnexpectedSignals from "@/components/unexpected-signals";
+import ImprovementGenerator from "@/components/improvement-generator";
 import LoadingState from "@/components/loading-state";
 
 type Phase = "landing" | "flow" | "results";
@@ -156,63 +155,86 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-5xl mx-auto px-6 py-8">
         {loading && <LoadingState />}
 
         {!loading && result && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             <DecisionBrief summary={result.summary} request={request} />
-            <ResultSummary summary={result.summary} variantA={request.variantA} variantB={request.variantB} />
 
             {result.summary.unexpectedSignals && result.summary.unexpectedSignals.length > 0 && (
-              <Section title="놓치기 쉬운 신호" highlight>
-                <UnexpectedSignals signals={result.summary.unexpectedSignals} />
-              </Section>
+              <UnexpectedSignals signals={result.summary.unexpectedSignals} />
             )}
 
-            {result.summary.typeAxesA && (
-              <Section title="타입별 심층 해석" highlight>
-                <TypeResultModule
-                  inputType={result.summary.inputType ?? "copy"}
-                  axesA={result.summary.typeAxesA}
-                  axesB={result.summary.typeAxesB}
-                />
-              </Section>
-            )}
-
-            {result.summary.segmentBreakdown.length > 0 && (
-              <Section title="세그먼트별 차이" highlight>
-                <SegmentTable
-                  breakdown={result.summary.segmentBreakdown}
-                  insights={result.summary.segmentInsights}
-                  winner={result.summary.winner}
-                />
-              </Section>
-            )}
-
-            {result.summary.riskAxesA && (
-              <Section title={result.summary.riskAxesB ? "공통 평가축 비교" : "공통 평가축 분석"}>
-                <RiskRadar
-                  axesA={result.summary.riskAxesA}
-                  axesB={result.summary.riskAxesB}
-                  inputType={result.summary.inputType ?? "copy"}
-                />
-              </Section>
-            )}
-
-            <Section title={result.summary.decisionMode === "review" ? "반응 분포" : "페르소나별 차이"}>
-              <ScoreChart
-                results={result.personas}
-                decisionMode={result.summary.decisionMode}
-                inputType={result.summary.inputType ?? "copy"}
+            <Section title="다음 액션" highlight>
+              <ImprovementGenerator
+                productDescription={request.productDescription}
+                targetCustomer={request.targetCustomer}
+                marketType={request.marketType}
+                usageContext={request.usageContext}
+                inputType={request.inputType}
+                decisionMode={request.decisionMode}
+                variantA={request.variantA}
+                variantB={request.variantB}
+                winner={result.summary.winner}
+                topConcerns={result.summary.topConcerns}
+                recommendedCopies={result.summary.recommendedCopies}
+                oneParagraphInsight={result.summary.oneParagraphInsight}
               />
             </Section>
 
-            <Section title="세부 인사이트">
-              <InsightCards summary={result.summary} />
-            </Section>
+            <CollapsibleSection title="근거 보기" defaultOpen>
+              <div className="space-y-4">
+                {result.summary.segmentBreakdown.length > 0 && (
+                  <SegmentTable
+                    breakdown={result.summary.segmentBreakdown}
+                    insights={result.summary.segmentInsights}
+                    winner={result.summary.winner}
+                  />
+                )}
 
-            <Section title={`페르소나 반응 (${result.personas.length}명)`}>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {result.summary.riskAxesA && (
+                    <div className="rounded-lg border border-slate-100 bg-white p-4">
+                      <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                        {result.summary.riskAxesB ? "공통 평가축 비교" : "공통 평가축 분석"}
+                      </p>
+                      <RiskRadar
+                        axesA={result.summary.riskAxesA}
+                        axesB={result.summary.riskAxesB}
+                        inputType={result.summary.inputType ?? "copy"}
+                      />
+                    </div>
+                  )}
+
+                  <div className="rounded-lg border border-slate-100 bg-white p-4">
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      {result.summary.decisionMode === "review" ? "반응 분포" : "페르소나별 차이"}
+                    </p>
+                    <ScoreChart
+                      results={result.personas}
+                      decisionMode={result.summary.decisionMode}
+                      inputType={result.summary.inputType ?? "copy"}
+                    />
+                  </div>
+                </div>
+
+                {result.summary.typeAxesA && (
+                  <div className="rounded-lg border border-slate-100 bg-white p-4">
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
+                      타입별 심층 해석
+                    </p>
+                    <TypeResultModule
+                      inputType={result.summary.inputType ?? "copy"}
+                      axesA={result.summary.typeAxesA}
+                      axesB={result.summary.typeAxesB}
+                    />
+                  </div>
+                )}
+              </div>
+            </CollapsibleSection>
+
+            <CollapsibleSection title={`페르소나 원문 반응 ${result.personas.length}명`} defaultOpen={false}>
               <div className="space-y-3">
                 {result.personas.map((r, i) => (
                   <PersonaCard
@@ -224,7 +246,7 @@ export default function Home() {
                   />
                 ))}
               </div>
-            </Section>
+            </CollapsibleSection>
 
             <p className="text-xs text-slate-300 text-center pb-4">
               데이터: NVIDIA Nemotron-Personas-Korea (CC BY 4.0) · 이 결과는 AI 시뮬레이션이며 실제 설문을 대체하지 않습니다
@@ -232,6 +254,32 @@ export default function Home() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function CollapsibleSection({
+  title,
+  children,
+  defaultOpen,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+
+  return (
+    <div className="rounded-xl border border-slate-100 bg-white">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+      >
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{title}</span>
+        <span className="text-xs font-semibold text-slate-400">{open ? "접기" : "펼치기"}</span>
+      </button>
+      {open && <div className="border-t border-slate-100 p-4">{children}</div>}
     </div>
   );
 }

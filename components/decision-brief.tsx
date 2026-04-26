@@ -1,16 +1,18 @@
 import { SimulationRequest, SimulationSummary } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
-import ImprovementGenerator from "@/components/improvement-generator";
-import { formatRecommendationBadge, getInputTypeCopy, getSelectionLabel, getVariantLabel } from "@/lib/display";
+import { formatRecommendationBadge, getInputTypeCopy, getSelectionLabel, getVariantLabel, toDisplayRiskAxes } from "@/lib/display";
 
 interface Props {
   summary: SimulationSummary;
   request: SimulationRequest;
 }
 
-function topRisks(summary: SimulationSummary): string[] {
-  return summary.topConcerns.slice(0, 2);
-}
+type MetricTone = "blue" | "violet" | "emerald" | "amber";
+type MetricChipData = {
+  label: string;
+  value: string;
+  tone: MetricTone;
+};
 
 function pickRecommendation(summary: SimulationSummary, request: SimulationRequest) {
   const inputType = summary.inputType ?? request.inputType;
@@ -68,13 +70,45 @@ function pickRecommendation(summary: SimulationSummary, request: SimulationReque
   };
 }
 
+function buildMetricChips(summary: SimulationSummary, request: SimulationRequest): MetricChipData[] {
+  const inputType = summary.inputType ?? request.inputType;
+  const decisionMode = summary.decisionMode ?? request.decisionMode;
+  const axesA = summary.riskAxesA ? toDisplayRiskAxes(summary.riskAxesA) : undefined;
+  const axesB = summary.riskAxesB ? toDisplayRiskAxes(summary.riskAxesB) : undefined;
+
+  if (!axesA) return [];
+
+  const metrics = [
+    { key: "clarity", label: "명확성" },
+    { key: "trust", label: "신뢰도" },
+    { key: "acceptance", label: "수용도" },
+  ] as const;
+
+  if (decisionMode === "review" || !axesB) {
+    return metrics.map(({ key, label }) => ({
+      label,
+      value: `${axesA[key].toFixed(1)}/5`,
+      tone: axesA[key] >= 3.5 ? "emerald" : "amber",
+    }));
+  }
+
+  return metrics.map(({ key, label }) => {
+    const winner = axesA[key] >= axesB[key] ? "A" : "B";
+    const delta = Math.abs(axesA[key] - axesB[key]);
+    return {
+      label,
+      value: `${getVariantLabel(inputType, winner)} 우세 +${delta.toFixed(1)}`,
+      tone: winner === "A" ? "blue" : "violet",
+    };
+  });
+}
+
 export default function DecisionBrief({ summary, request }: Props) {
   const rec = pickRecommendation(summary, request);
-  const risks = topRisks(summary);
   const actions = summary.recommendedCopies.slice(0, 3);
   const confidence = summary.confidence;
   const cautionSignals = summary.cautionSignals ?? [];
-  const relevanceMix = summary.relevanceMix;
+  const metricChips = buildMetricChips(summary, request);
 
   const toneMap = {
     blue: {
@@ -111,106 +145,76 @@ export default function DecisionBrief({ summary, request }: Props) {
       : "bg-rose-100 text-rose-700 border-rose-200";
 
   return (
-    <div className="space-y-4">
-      <Card className={tone.shell}>
-        <CardContent className="pt-5 pb-5 space-y-4">
-          <div className="space-y-2">
-            <div className="flex flex-wrap gap-2">
-              <span className={`inline-flex text-[11px] font-bold px-2.5 py-1 rounded-full ${tone.badge}`}>
-                {rec.badge}
+    <Card className={tone.shell}>
+      <CardContent className="pt-5 pb-5 space-y-4">
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <span className={`inline-flex text-[11px] font-bold px-2.5 py-1 rounded-full ${tone.badge}`}>
+              {rec.badge}
+            </span>
+            {confidence && (
+              <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${confidenceTone}`}>
+                {confidence.label}
               </span>
-              <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                리스크 탐지용 결과
+            )}
+            {cautionSignals.slice(0, 2).map((signal) => (
+              <span
+                key={signal.code}
+                className="inline-flex items-center rounded-full border border-amber-200 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-amber-700"
+                title={signal.description}
+              >
+                {signal.label}
               </span>
-              {confidence && (
-                <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${confidenceTone}`}>
-                  {confidence.label}
-                </span>
-              )}
-            </div>
-            <h2 className={`text-2xl font-bold ${tone.title}`}>{rec.title}</h2>
-            <p className="text-sm text-slate-600 leading-relaxed">{rec.body}</p>
+            ))}
           </div>
+          <h2 className={`text-2xl font-bold leading-tight ${tone.title}`}>{rec.title}</h2>
+          <p className="text-sm text-slate-600 leading-relaxed">{rec.body}</p>
+        </div>
 
-          <div className="rounded-2xl border border-white bg-white/90 px-5 py-5 shadow-sm">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">{rec.selectedLabel}</p>
-            <p className="text-lg font-semibold leading-relaxed text-slate-800">{rec.selectedText}</p>
+        <div className="rounded-lg border border-white bg-white/90 px-4 py-4 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">{rec.selectedLabel}</p>
+          <p className="text-base font-semibold leading-relaxed text-slate-800">{rec.selectedText}</p>
+        </div>
+
+        <div className="rounded-lg border border-white bg-white/80 px-4 py-3">
+          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">지금 수정할 것</p>
+          <p className="text-sm text-slate-700 leading-relaxed">
+            {actions[0] ?? "현재 결과에서는 뚜렷한 수정 방향이 충분히 정리되지 않았습니다."}
+          </p>
+        </div>
+
+        {metricChips.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {metricChips.map((chip) => (
+              <MetricChip key={chip.label} label={chip.label} value={chip.value} tone={chip.tone} />
+            ))}
           </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
-          <div className="grid gap-3 lg:grid-cols-[0.95fr_1.05fr]">
-            <div className="rounded-xl border border-white bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">해석 가이드</p>
-              <p className="text-sm text-slate-700 leading-relaxed">
-                {confidence?.description ?? "이 결과는 정답 예측이 아니라 출시 전 리스크를 먼저 드러내기 위한 신호입니다."}
-              </p>
-              {relevanceMix && (
-                <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                  타깃 적합도 분포: high {relevanceMix.high.toFixed(0)}% · medium {relevanceMix.medium.toFixed(0)}% · low {relevanceMix.low.toFixed(0)}%
-                </p>
-              )}
-            </div>
-            <div className="rounded-xl border border-white bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">바로 적용할 수정 방향</p>
-              <ul className="space-y-2">
-                {actions.length > 0 ? actions.map((action, index) => (
-                  <li key={index} className="text-sm text-slate-700 leading-relaxed">
-                    {action}
-                  </li>
-                )) : (
-                  <li className="text-sm text-slate-400">수정 방향이 아직 충분히 정리되지 않았습니다.</li>
-                )}
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+function MetricChip({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: MetricTone;
+}) {
+  const tones = {
+    blue: "border-blue-200 bg-blue-50 text-blue-700",
+    violet: "border-violet-200 bg-violet-50 text-violet-700",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    amber: "border-amber-200 bg-amber-50 text-amber-700",
+  } as const;
 
-      <ImprovementGenerator
-        productDescription={request.productDescription}
-        targetCustomer={request.targetCustomer}
-        marketType={request.marketType}
-        usageContext={request.usageContext}
-        inputType={request.inputType}
-        decisionMode={request.decisionMode}
-        variantA={request.variantA}
-        variantB={request.variantB}
-        winner={summary.winner}
-        topConcerns={summary.topConcerns}
-        recommendedCopies={summary.recommendedCopies}
-        oneParagraphInsight={summary.oneParagraphInsight}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Card className="border-red-100">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-semibold text-red-600 mb-2">가장 큰 우려 포인트</p>
-            <ul className="space-y-2">
-              {risks.length > 0 ? risks.map((risk, index) => (
-                <li key={index} className="text-sm text-slate-700 leading-relaxed">
-                  {risk}
-                </li>
-              )) : (
-                <li className="text-sm text-slate-400">뚜렷한 우려 포인트가 없습니다.</li>
-              )}
-            </ul>
-          </CardContent>
-        </Card>
-
-        <Card className="border-slate-100">
-          <CardContent className="pt-4 pb-4">
-            <p className="text-xs font-semibold text-slate-600 mb-2">주의해서 읽을 점</p>
-            <ul className="space-y-2">
-              {cautionSignals.length > 0 ? cautionSignals.slice(0, 3).map((signal) => (
-                <li key={signal.code} className="text-sm text-slate-700 leading-relaxed">
-                  <span className="font-semibold">{signal.label}</span> · {signal.description}
-                </li>
-              )) : (
-                <li className="text-sm text-slate-400">현재 결과에서는 큰 경고 신호가 적습니다.</li>
-              )}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${tones[tone]}`}>
+      <span className="text-slate-500">{label}</span>
+      <span>{value}</span>
+    </span>
   );
 }

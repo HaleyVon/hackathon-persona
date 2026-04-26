@@ -204,16 +204,6 @@ export default function HeroSection({ onStart, onDemo }: Props) {
             transform: visible ? "translateY(0)" : "translateY(8px)",
           }}
         >
-          {[
-            { value: "5,000명", label: "한국인 합성 페르소나" },
-            { value: "10초", label: "평균 응답 시간" },
-            { value: "5개 축", label: "신뢰·이해·매력·저항·명확성" },
-          ].map(({ value, label }) => (
-            <div key={label} className="text-center">
-              <div className="text-2xl font-bold text-slate-800">{value}</div>
-              <div className="text-xs text-slate-400 mt-0.5">{label}</div>
-            </div>
-          ))}
         </div>
       </div>
 

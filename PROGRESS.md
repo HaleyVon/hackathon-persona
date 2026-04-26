@@ -7,7 +7,7 @@
 
 ## 현재 상태
 
-**단계:** 랜딩 + 플로우 UI 구현 완료
+**단계:** 랜딩 + 플로우 UI + 데모 시나리오 전면 완성
 **마지막 업데이트:** 2026-04-26
 **남은 시간(추정):** 해커톤 진행 중
 
@@ -122,10 +122,15 @@
 - [x] `components/landing/TargetSection.tsx` — 대상 사용자 카드
 - [x] `components/landing/CTASection.tsx` — 시뮬레이션 시작하기 CTA
 - [x] `components/flow/FlowContainer.tsx` — Typeform 스타일 translateY 슬라이드 전환
-- [x] `components/flow/FlowDemoBar.tsx` — 플로팅 데모 케이스 퀵 셀렉터
+- [x] `components/flow/FlowDemoBar.tsx` — 플로팅 데모 케이스 퀵 셀렉터 (fill+step1 / jump-to-results 두 액션 분리)
 - [x] `components/flow/Step1Mode.tsx` ~ `Step6Run.tsx` — 6단계 풀페이지 입력 플로우
 - [x] Results phase: 기존 컴포넌트 전부 재활용, `← 다시 설정` 버튼 추가
-- [x] 빌드 검증 완료 (`npm run build` 통과)
+- [x] `data/demo-scenarios.ts` 전면 재작성: 6개 시나리오에 `riskAxesA/B`, `segmentBreakdown`, `segmentInsights`, `confidence`, `cautionSignals`, `unexpectedSignals`, 시나리오별 `filters` 포함
+- [x] 데모 케이스 스토리 아크 6종: B2B SaaS 랜딩/스프린트 기능, 커머스 가격표/무료체험 모달, 학부모 앱 buyer-user, 핀테크 계좌연결 신뢰갭
+- [x] 시나리오별 타깃 필터 자동 적용: 직군·나이·지역·결혼여부를 각 케이스 실제 타깃에 맞게 preset
+- [x] 빌드 검증 완료 (`npm run build` 통과, TypeScript 오류 없음)
+- [x] README 피치 문서화: Persona Signal 대외명, 고영향 의사결정, Unexpected Signals 전면 배치, 발표용 메시지 부록 추가
+- [x] 결과 화면 progressive disclosure 적용: Verdict → Signals → Next Action → Evidence → Persona Raw 구조로 재배치
 
 ---
 
