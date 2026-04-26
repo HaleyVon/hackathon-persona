@@ -95,6 +95,28 @@ export type SegmentBreakdown = {
   preferB: number;
   tie: number;
   total: number;
+  winner?: "A" | "B" | "Tie";
+  avgScoreA?: number;
+  avgScoreB?: number;
+  avgTrustA?: number;
+  avgTrustB?: number;
+  avgResistanceA?: number;
+  avgResistanceB?: number;
+  avgConfusionA?: number;
+  avgConfusionB?: number;
+};
+
+export type SegmentInsight = {
+  label: string;
+  title: string;
+  description: string;
+  preferredVariant?: "A" | "B" | "Tie";
+};
+
+export type SegmentInsights = {
+  resistant?: SegmentInsight;
+  niche?: SegmentInsight;
+  testFirst?: SegmentInsight;
 };
 
 export type RiskAxes = {
@@ -143,6 +165,7 @@ export type SimulationSummary = {
   inputType?: InputType;
   confidence?: SummaryConfidence;
   cautionSignals?: SummaryCautionSignal[];
+  segmentInsights?: SegmentInsights;
 };
 
 export type SimulationResponse = {

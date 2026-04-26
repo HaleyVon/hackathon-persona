@@ -159,7 +159,11 @@ export default function Home() {
               {/* 세그먼트 차이 */}
               {result.summary.segmentBreakdown.length > 0 && (
                 <Section title="세그먼트별 차이" highlight>
-                  <SegmentTable breakdown={result.summary.segmentBreakdown} />
+                  <SegmentTable
+                    breakdown={result.summary.segmentBreakdown}
+                    insights={result.summary.segmentInsights}
+                    winner={result.summary.winner}
+                  />
                 </Section>
               )}
 

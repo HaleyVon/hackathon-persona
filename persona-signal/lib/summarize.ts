@@ -3,6 +3,7 @@ import {
   PersonaComparisonResult,
   RiskAxes,
   SegmentBreakdown,
+  SegmentInsights,
   SimulationSummary,
   SummaryCautionSignal,
   SummaryConfidence,
@@ -249,6 +250,121 @@ function buildConfidence(params: {
   };
 }
 
+function avgOptional(values: Array<number | undefined>): number | undefined {
+  const defined = values.filter((value): value is number => value !== undefined);
+  if (!defined.length) return undefined;
+  return round1(defined.reduce((sum, value) => sum + value, 0) / defined.length);
+}
+
+function riskSignal(params: {
+  trust?: number;
+  resistance?: number;
+  confusion?: number;
+  intent?: number;
+}): number {
+  const trust = params.trust ?? 3;
+  const resistance = params.resistance ?? 3;
+  const confusion = params.confusion ?? 3;
+  const intent = params.intent ?? 3;
+  return ((6 - trust) * 1.2) + resistance + confusion + ((6 - intent) * 0.8);
+}
+
+function describeVariant(variant?: "A" | "B" | "Tie"): string {
+  if (variant === "A") return "A안";
+  if (variant === "B") return "B안";
+  return "두 안";
+}
+
+function segmentWinner(preferA: number, preferB: number): "A" | "B" | "Tie" {
+  if (preferA > preferB) return "A";
+  if (preferB > preferA) return "B";
+  return "Tie";
+}
+
+function buildSegmentInsights(
+  breakdown: SegmentBreakdown[],
+  winner: "A" | "B" | "Tie"
+): SegmentInsights | undefined {
+  if (!breakdown.length) return undefined;
+
+  const chosenVariant = winner === "Tie" ? undefined : winner;
+
+  const resistant = [...breakdown]
+    .sort((left, right) => {
+      const leftRisk = riskSignal({
+        trust: chosenVariant === "B" ? left.avgTrustB : left.avgTrustA,
+        resistance: chosenVariant === "B" ? left.avgResistanceB : left.avgResistanceA,
+        confusion: chosenVariant === "B" ? left.avgConfusionB : left.avgConfusionA,
+        intent: chosenVariant === "B" ? left.avgScoreB : left.avgScoreA,
+      });
+      const rightRisk = riskSignal({
+        trust: chosenVariant === "B" ? right.avgTrustB : right.avgTrustA,
+        resistance: chosenVariant === "B" ? right.avgResistanceB : right.avgResistanceA,
+        confusion: chosenVariant === "B" ? right.avgConfusionB : right.avgConfusionA,
+        intent: chosenVariant === "B" ? right.avgScoreB : right.avgScoreA,
+      });
+      return rightRisk - leftRisk;
+    })[0];
+
+  const nicheCandidates = breakdown.filter((segment) => segment.total >= 2 && segment.winner && segment.winner !== "Tie");
+  const niche = [...nicheCandidates]
+    .sort((left, right) => {
+      const leftSkew = Math.abs(left.preferA - left.preferB) / left.total;
+      const rightSkew = Math.abs(right.preferA - right.preferB) / right.total;
+      const leftBoost = left.winner !== winner && left.winner !== "Tie" ? 0.35 : 0;
+      const rightBoost = right.winner !== winner && right.winner !== "Tie" ? 0.35 : 0;
+      return (rightSkew + rightBoost + right.total * 0.03) - (leftSkew + leftBoost + left.total * 0.03);
+    })[0];
+
+  const splitCandidates = breakdown.filter((segment) => segment.total >= 2 && Math.abs(segment.preferA - segment.preferB) <= 1);
+  const testFirstSource =
+    [...splitCandidates].sort((left, right) => right.total - left.total)[0]
+    ?? [...breakdown]
+      .sort((left, right) => {
+        const leftContrast = Math.abs((left.avgScoreA ?? 3) - (left.avgScoreB ?? 3));
+        const rightContrast = Math.abs((right.avgScoreA ?? 3) - (right.avgScoreB ?? 3));
+        return rightContrast - leftContrast;
+      })[0];
+
+  return {
+    resistant: resistant && chosenVariant
+      ? {
+          label: resistant.label,
+          preferredVariant: chosenVariant,
+          title: `${resistant.label}에서 ${describeVariant(chosenVariant)} 거부 신호가 가장 큽니다`,
+          description: `신뢰 ${((chosenVariant === "B" ? resistant.avgTrustB : resistant.avgTrustA) ?? 3).toFixed(1)}/5, 혼란 ${((chosenVariant === "B" ? resistant.avgConfusionB : resistant.avgConfusionA) ?? 3).toFixed(1)}/5 수준입니다. 이 세그먼트는 배포 시 가장 먼저 이탈할 가능성이 큽니다.`,
+        }
+      : resistant
+        ? {
+            label: resistant.label,
+            preferredVariant: resistant.winner,
+            title: `${resistant.label}는 어느 안에도 확신을 주지 못합니다`,
+            description: "전체 결론이 애매할 때 가장 먼저 흔들리는 세그먼트입니다. 표현을 더 구체화하지 않으면 실제 반응도 갈릴 가능성이 큽니다.",
+          }
+        : undefined,
+    niche: niche
+      ? {
+          label: niche.label,
+          preferredVariant: niche.winner,
+          title: `${niche.label}에서는 ${describeVariant(niche.winner)} 반응이 유독 강합니다`,
+          description: niche.winner !== winner && niche.winner !== "Tie"
+            ? `전체 결론과 달리 이 세그먼트는 ${describeVariant(niche.winner)}를 더 선호합니다. 전면 rollout 전에 별도 타깃 메시지로 분리할 여지가 있습니다.`
+            : `이 세그먼트는 ${describeVariant(niche.winner)}에 특히 선명하게 반응합니다. 초기 타깃이나 사례 확보용 세그먼트로 쓰기 좋습니다.`,
+        }
+      : undefined,
+    testFirst: testFirstSource
+      ? {
+          label: testFirstSource.label,
+          preferredVariant: testFirstSource.winner,
+          title: `${testFirstSource.label}를 먼저 검증하는 편이 학습 효율이 높습니다`,
+          description: Math.abs(testFirstSource.preferA - testFirstSource.preferB) <= 1
+            ? "이 세그먼트는 선호가 갈려 있어 다음 실험에서 가장 많은 학습을 줍니다. 문구 수정안이나 가격 기준점을 먼저 이 그룹에 확인하는 편이 좋습니다."
+            : `이 세그먼트는 반응 차이가 비교적 선명합니다. 현재 가설을 빠르게 검증하려면 이 그룹을 첫 인터뷰/테스트 대상으로 두는 편이 효율적입니다.`,
+        }
+      : undefined,
+  };
+}
+
 export function buildSummary(
   results: PersonaComparisonResult[],
   insights: {
@@ -296,6 +412,8 @@ export function buildSummary(
     avgScoreA,
     avgScoreB,
   });
+  const segmentBreakdown = isReview ? [] : buildSegmentBreakdown(results);
+  const segmentInsights = isReview ? undefined : buildSegmentInsights(segmentBreakdown, winner);
 
   return {
     winner,
@@ -305,35 +423,82 @@ export function buildSummary(
     riskAxesB,
     typeAxesA: buildTypeAxes(results, "A", inputType),
     typeAxesB: isReview ? undefined : buildTypeAxes(results, "B", inputType),
-    segmentBreakdown: isReview ? [] : buildSegmentBreakdown(results),
+    segmentBreakdown,
     decisionMode,
     inputType,
     confidence,
     cautionSignals,
+    segmentInsights,
     ...insights,
   };
 }
 
 function buildSegmentBreakdown(results: PersonaComparisonResult[]): SegmentBreakdown[] {
-  const groups: Record<string, { preferA: number; preferB: number; tie: number }> = {};
+  const groups: Record<string, {
+    preferA: number;
+    preferB: number;
+    tie: number;
+    scoreA: number[];
+    scoreB: number[];
+    trustA: Array<number | undefined>;
+    trustB: Array<number | undefined>;
+    resistanceA: Array<number | undefined>;
+    resistanceB: Array<number | undefined>;
+    confusionA: Array<number | undefined>;
+    confusionB: Array<number | undefined>;
+  }> = {};
 
   for (const r of results) {
     const ageGroup = getAgeGroup(r.persona.age);
     const sex = r.persona.sex;
     const label = `${ageGroup} ${sex}`;
 
-    if (!groups[label]) groups[label] = { preferA: 0, preferB: 0, tie: 0 };
+    if (!groups[label]) {
+      groups[label] = {
+        preferA: 0,
+        preferB: 0,
+        tie: 0,
+        scoreA: [],
+        scoreB: [],
+        trustA: [],
+        trustB: [],
+        resistanceA: [],
+        resistanceB: [],
+        confusionA: [],
+        confusionB: [],
+      };
+    }
 
     if (r.preferredVariant === "A") groups[label].preferA++;
     else if (r.preferredVariant === "B") groups[label].preferB++;
     else groups[label].tie++;
+
+    groups[label].scoreA.push(r.reactionA.purchaseIntent);
+    groups[label].scoreB.push(r.reactionB.purchaseIntent);
+    groups[label].trustA.push(r.reactionA.trust);
+    groups[label].trustB.push(r.reactionB.trust);
+    groups[label].resistanceA.push(r.reactionA.resistance);
+    groups[label].resistanceB.push(r.reactionB.resistance);
+    groups[label].confusionA.push(r.reactionA.confusionRisk);
+    groups[label].confusionB.push(r.reactionB.confusionRisk);
   }
 
   return Object.entries(groups)
     .map(([label, counts]) => ({
       label,
-      ...counts,
       total: counts.preferA + counts.preferB + counts.tie,
+      preferA: counts.preferA,
+      preferB: counts.preferB,
+      tie: counts.tie,
+      winner: segmentWinner(counts.preferA, counts.preferB),
+      avgScoreA: avgOptional(counts.scoreA),
+      avgScoreB: avgOptional(counts.scoreB),
+      avgTrustA: avgOptional(counts.trustA),
+      avgTrustB: avgOptional(counts.trustB),
+      avgResistanceA: avgOptional(counts.resistanceA),
+      avgResistanceB: avgOptional(counts.resistanceB),
+      avgConfusionA: avgOptional(counts.confusionA),
+      avgConfusionB: avgOptional(counts.confusionB),
     }))
     .sort((a, b) => b.total - a.total);
 }
