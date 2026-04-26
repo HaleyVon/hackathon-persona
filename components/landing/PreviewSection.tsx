@@ -5,7 +5,7 @@ export default function PreviewSection() {
         <div className="text-center mb-16">
           <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">Sample Output</span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-            이런 결과를 받아보실 수 있습니다
+            시뮬레이션 리포트를 기반으로 아이디어의 완성도를 높이세요
           </h2>
           <p className="mt-3 text-slate-500 text-base">실제 시뮬레이션 결과 예시입니다.</p>
         </div>

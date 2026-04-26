@@ -5,7 +5,7 @@ export default function TargetSection() {
         <div className="text-center mb-16">
           <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">Who It&apos;s For</span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-            이런 분들이 쓰고 있습니다
+            의사결정이 필요한 모든 Product Maker에게 추천합니다
           </h2>
         </div>
 

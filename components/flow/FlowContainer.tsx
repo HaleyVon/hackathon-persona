@@ -21,7 +21,7 @@ interface Props {
   error: string | null;
   selectedDemoId: string;
   onDemoSelect: (id: string) => void;
-  onDemoMode: () => void;
+  onDemoMode: (id: string) => void;
   onRun: () => void;
   onBack: () => void;
 }
@@ -34,6 +34,12 @@ export default function FlowContainer({
 
   const prev = () => setStep((s) => Math.max(0, s - 1));
   const next = () => setStep((s) => Math.min(TOTAL - 1, s + 1));
+
+  // 샘플 케이스 선택 → 폼 채우기 + Step 1로 이동
+  const handleFillDemo = (id: string) => {
+    onDemoSelect(id);
+    setStep(0);
+  };
 
   const stepProps = { request, onChange, loading, onNext: next, onPrev: prev };
 
@@ -127,7 +133,7 @@ export default function FlowContainer({
       {/* Floating demo bar */}
       <FlowDemoBar
         selectedDemoId={selectedDemoId}
-        onDemoSelect={onDemoSelect}
+        onFillDemo={handleFillDemo}
         onDemoMode={onDemoMode}
       />
     </div>

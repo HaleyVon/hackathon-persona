@@ -68,9 +68,11 @@ export default function Home() {
     }
   }
 
-  function handleDemoMode() {
-    const scenario = DEMO_SCENARIOS.find((item) => item.id === selectedDemoId) ?? DEFAULT_DEMO_SCENARIO;
+  function handleDemoMode(id?: string) {
+    const scenarioId = id ?? selectedDemoId;
+    const scenario = DEMO_SCENARIOS.find((item) => item.id === scenarioId) ?? DEFAULT_DEMO_SCENARIO;
     setDemoMode(true);
+    setSelectedDemoId(scenarioId);
     setRequest(scenario.request);
     setResult(scenario.response);
     setError(null);
@@ -146,7 +148,7 @@ export default function Home() {
             ← 다시 설정
           </button>
           <button
-            onClick={handleDemoMode}
+            onClick={() => handleDemoMode()}
             className="text-xs px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors font-medium"
           >
             ⚡ 데모 모드

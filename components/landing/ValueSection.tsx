@@ -5,7 +5,7 @@ export default function ValueSection() {
         <div className="text-center mb-16">
           <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">How It Works</span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-            3분 안에, 이런 걸 알 수 있습니다
+            한국인 페르소나 5,000명이 당신의 아이디어에 응답합니다
           </h2>
         </div>
 

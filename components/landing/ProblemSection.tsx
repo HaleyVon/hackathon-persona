@@ -5,7 +5,7 @@ export default function ProblemSection() {
         <div className="text-center mb-16">
           <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">The Problem</span>
           <h2 className="mt-3 text-3xl sm:text-4xl font-bold text-slate-900 leading-tight">
-            좋은 아이디어인지 확신하기 어렵다
+            좋은 아이디어인지 확신하기 어렵다면,
           </h2>
         </div>
 

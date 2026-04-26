@@ -157,9 +157,9 @@ export default function HeroSection({ onStart, onDemo }: Props) {
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-bold text-slate-900 leading-tight tracking-tight max-w-2xl mx-auto">
-            출시 전에
+            제품을 출시하기 전에
             <br />
-            <span className="text-blue-600">고객 반응</span>을 먼저 보세요
+            <span className="text-blue-600">고객 반응</span>을 먼저 예측하세요
           </h1>
 
           <p
