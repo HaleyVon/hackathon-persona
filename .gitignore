@@ -5,4 +5,8 @@
 .claude/
 node_modules/
 .next/
+out/
+coverage/
 dist/
+*.tsbuildinfo
+next-env.d.ts

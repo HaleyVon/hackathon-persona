@@ -56,6 +56,11 @@
 - [x] 세그먼트 라벨 개선: 좁은 타겟 범위에서는 `25-29세` 같은 동적 5년 버킷 사용
 - [x] 데모 케이스 현실감 보강: 제품 설명/사용 맥락/A-B 안건을 실제 PM·마케팅 회의 안건 수준으로 재작성
 - [x] 데모 버튼 라벨을 현업 문제 중심으로 변경: 보안이 막는 SaaS 랜딩, 무료체험 종료 모달, 계좌 연결 첫 화면 등
+- [x] 제품 프레젠테이션형 README 완성: 문제 정의, 차별점, 데모 시나리오, 기술 구조, 한계와 방어 논리 정리
+- [x] GitHub 첫 화면용 루트 README 추가: 제품을 바로 이해할 수 있도록 한국어 제품/기술/데모 설명 정리
+- [x] 레포 문서/구조 정리: 완료된 설계·피치·임시 계획 문서 제거, 중복 Supabase 설정 제거
+- [x] Next.js 앱을 루트로 이동: `persona-signal/` 하위 앱 구조를 단일 제품 레포 구조로 정리
+- [x] 에이전트 규칙 문서 갱신: 현재 표본 수 정책(`10/20/30/50`)과 앱 구조에 맞게 `CLAUDE.md` 정리
 
 ### 인프라 / 데이터
 - [x] Supabase 프로젝트 연결 (`ijptkmnrhvrujvyvrpth`)
@@ -66,7 +71,7 @@
 - [x] 실제 필드값 확인 — `sex: 남자/여자`, `province: 서울/경기...` 등
 
 ### Next.js 프로젝트
-- [x] `persona-signal/` Next.js 14 App Router 생성
+- [x] Next.js App Router 앱을 루트 구조로 정리
 - [x] shadcn/ui, Recharts, Zod, OpenAI SDK, Supabase JS 설치
 - [x] `.env.local` 연결 (OpenAI + Supabase 키)
 
@@ -147,7 +152,7 @@
 ### 즉시 운영 작업
 
 - [x] **fallback demo-response.json 생성**
-  - 경로: `persona-signal/data/demo-response.json`
+  - 경로: `data/demo-response.json`
   - 내용: 리스크 5축 필드를 포함한 실제형 API 응답 저장
   - 목적: 발표 중 네트워크/LLM 불안정 시 데모 강행 가능
 
@@ -181,12 +186,12 @@
 
 ### H7 — 발표 준비
 
-- [ ] **README 마무리** (`persona-signal/README.md`)
+- [x] **README 마무리** (`README.md`)
   - 문제 / 해결 / 데모 방법 / 데이터 출처 / 한계
   - `pre-validation tool` 포지셔닝과 `리스크 탐지` 메시지 반영
 - [ ] **리허설 3회**
   - 3분 발표 스크립트 확인
-  - 심사위원 예상 질문 답변 준비
+  - 예상 질문 답변 준비
 - [ ] **기능 추가 금지 — 리허설만**
 
 ---
@@ -208,20 +213,21 @@
 
 ```
 hackathon-persona/
-├── PROGRESS.md                    ← 이 파일
+├── README.md                      ← 제품 프레젠테이션 / 실행 안내
+├── PROGRESS.md                    ← 진행 현황
+├── package.json                   ← 앱 스크립트
+├── app/
+│   ├── page.tsx                   ✅ 완료
+│   └── api/
+│       ├── simulate/route.ts      ✅ 완료
+│       └── improve/route.ts       ✅ 완료
+├── components/                    ✅ 전체 완료
+├── lib/                           ✅ 전체 완료
+├── data/
+│   ├── demo-scenarios.ts          ✅ 완료
+│   └── demo-response.json         ✅ 완료
 ├── supabase/migrations/           ← DB 스키마
-├── scripts/prepare_personas.py    ← 데이터 로딩
-├── docs/                          ← 설계 문서
-├── plans/                         ← 구현 계획
-└── persona-signal/                ← Next.js 앱
-    ├── app/
-    │   ├── page.tsx               ✅ 완료
-    │   └── api/simulate/route.ts  ✅ 완료
-    ├── components/                ✅ 전체 완료
-    ├── lib/                       ✅ 전체 완료
-    └── data/
-        ├── demo-response.json     🔲 미완성
-        └── demo-request.json      🔲 미완성
+└── scripts/prepare_personas.py    ← 데이터 로딩
 ```
 
 ---
