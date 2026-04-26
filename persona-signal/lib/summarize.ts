@@ -8,6 +8,7 @@ import {
   SimulationSummary,
   SummaryCautionSignal,
   SummaryConfidence,
+  UnexpectedSignal,
   VariantReaction,
 } from "./types";
 function weightedAverage(values: Array<{ value?: number; weight: number }>): number {
@@ -172,7 +173,7 @@ function buildCautionSignals(params: {
     });
   }
 
-  if (relevanceMix.low >= 35) {
+  if (relevanceMix.low >= 25) {
     cautions.push({
       code: "low_relevance_mix",
       label: "비타깃 표본 섞임",
@@ -416,6 +417,93 @@ function buildSegmentInsights(
   };
 }
 
+function buildUnexpectedSignals(params: {
+  decisionMode: "compare" | "review";
+  winner: "A" | "B" | "Tie";
+  avgScoreA: number;
+  avgScoreB: number;
+  riskAxesA?: RiskAxes;
+  riskAxesB?: RiskAxes;
+  relevanceMix: Record<RelevanceLevel, number>;
+  segmentBreakdown: SegmentBreakdown[];
+  segmentInsights?: SegmentInsights;
+}): UnexpectedSignal[] {
+  const {
+    decisionMode,
+    winner,
+    avgScoreA,
+    avgScoreB,
+    riskAxesA,
+    riskAxesB,
+    relevanceMix,
+    segmentBreakdown,
+    segmentInsights,
+  } = params;
+  const signals: UnexpectedSignal[] = [];
+  const selectedAxes = decisionMode === "review" || winner !== "B" ? riskAxesA : riskAxesB;
+  const selectedScore = decisionMode === "review" || winner !== "B" ? avgScoreA : avgScoreB;
+  const selectedClarity = selectedAxes ? 6 - selectedAxes.confusionRisk : undefined;
+
+  if (relevanceMix.low >= 25) {
+    signals.push({
+      code: "low_relevance_dilution",
+      title: "평균을 낮춘 건 비타깃 반응일 수 있습니다",
+      description: `low relevance 표본이 ${relevanceMix.low.toFixed(0)}%입니다. 전체 평균보다 high/medium relevance 페르소나의 반응을 따로 보는 편이 의사결정에 더 가깝습니다.`,
+      severity: "warning",
+    });
+  }
+
+  if (selectedAxes && selectedAxes.appeal >= 3.7 && selectedAxes.trust < 3.3) {
+    signals.push({
+      code: "trust_gap",
+      title: "혹하지만 아직 못 믿는 신호가 있습니다",
+      description: `매력도는 ${selectedAxes.appeal.toFixed(1)}/5인데 신뢰도는 ${selectedAxes.trust.toFixed(1)}/5입니다. 관심을 끄는 데는 성공했지만 근거, 보안, 사례가 전환을 막을 수 있습니다.`,
+      severity: "critical",
+    });
+  }
+
+  if (selectedAxes && selectedClarity && selectedClarity >= 3.8 && selectedScore < 3.4) {
+    signals.push({
+      code: "clarity_without_action",
+      title: "명확하지만 행동으로 이어지지 않습니다",
+      description: `명확성은 ${selectedClarity.toFixed(1)}/5로 높지만 행동 의향은 ${selectedScore.toFixed(1)}/5입니다. 설명은 이해됐지만 지금 당장 쓸 이유나 우선순위가 약합니다.`,
+      severity: "warning",
+    });
+  }
+
+  if (decisionMode === "compare") {
+    const scoreGap = Math.abs(avgScoreA - avgScoreB);
+    const support =
+      winner === "Tie"
+        ? 0.5
+        : segmentBreakdown.reduce((sum, segment) => {
+            if (winner === "A") return sum + segment.preferA;
+            if (winner === "B") return sum + segment.preferB;
+            return sum + segment.tie;
+          }, 0) / Math.max(1, segmentBreakdown.reduce((sum, segment) => sum + segment.total, 0));
+
+    if (winner !== "Tie" && (scoreGap < 0.45 || support < 0.65)) {
+      signals.push({
+        code: "split_decision",
+        title: "승자는 있지만 전면 배포용 승자는 아닐 수 있습니다",
+        description: `점수 차이는 ${scoreGap.toFixed(1)}점이고 선호 지지는 ${(support * 100).toFixed(0)}%입니다. 전체 승자보다 어느 세그먼트에서 깨지는지 먼저 확인해야 합니다.`,
+        severity: "warning",
+      });
+    }
+  }
+
+  if (segmentInsights?.resistant) {
+    signals.push({
+      code: "hidden_segment_risk",
+      title: "전체 평균 뒤에 숨은 이탈 세그먼트가 있습니다",
+      description: segmentInsights.resistant.description,
+      severity: "warning",
+    });
+  }
+
+  return signals.slice(0, 3);
+}
+
 export function buildSummary(
   results: PersonaComparisonResult[],
   insights: {
@@ -465,6 +553,17 @@ export function buildSummary(
   });
   const segmentBreakdown = isReview ? [] : buildSegmentBreakdown(results);
   const segmentInsights = isReview ? undefined : buildSegmentInsights(segmentBreakdown, winner);
+  const unexpectedSignals = buildUnexpectedSignals({
+    decisionMode,
+    winner,
+    avgScoreA,
+    avgScoreB,
+    riskAxesA,
+    riskAxesB,
+    relevanceMix,
+    segmentBreakdown,
+    segmentInsights,
+  });
 
   return {
     winner,
@@ -480,6 +579,7 @@ export function buildSummary(
     confidence,
     cautionSignals,
     segmentInsights,
+    unexpectedSignals,
     relevanceMix,
     ...insights,
   };

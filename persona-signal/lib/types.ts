@@ -125,6 +125,19 @@ export type SegmentInsights = {
   testFirst?: SegmentInsight;
 };
 
+export type UnexpectedSignal = {
+  code:
+    | "hidden_segment_risk"
+    | "trust_gap"
+    | "clarity_without_action"
+    | "low_relevance_dilution"
+    | "split_decision"
+    | "buyer_user_mismatch";
+  title: string;
+  description: string;
+  severity: "info" | "warning" | "critical";
+};
+
 export type RiskAxes = {
   comprehension: number;
   trust: number;
@@ -181,6 +194,7 @@ export type SimulationSummary = {
   confidence?: SummaryConfidence;
   cautionSignals?: SummaryCautionSignal[];
   segmentInsights?: SegmentInsights;
+  unexpectedSignals?: UnexpectedSignal[];
   relevanceMix?: Record<RelevanceLevel, number>;
 };
 

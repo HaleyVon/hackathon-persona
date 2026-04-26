@@ -13,6 +13,7 @@ import PersonaCard from "@/components/persona-card";
 import RiskRadar from "@/components/risk-radar";
 import TypeResultModule from "@/components/type-result-module";
 import DecisionBrief from "@/components/decision-brief";
+import UnexpectedSignals from "@/components/unexpected-signals";
 
 export default function Home() {
   const [request, setRequest] = useState<SimulationRequest>(DEFAULT_DEMO_SCENARIO.request);
@@ -187,6 +188,12 @@ export default function Home() {
                 variantA={request.variantA}
                 variantB={request.variantB}
               />
+
+              {result.summary.unexpectedSignals && result.summary.unexpectedSignals.length > 0 && (
+                <Section title="놓치기 쉬운 신호" highlight>
+                  <UnexpectedSignals signals={result.summary.unexpectedSignals} />
+                </Section>
+              )}
 
               {/* 타입별 추가 모듈 */}
               {result.summary.typeAxesA && (
