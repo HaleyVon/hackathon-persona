@@ -56,6 +56,9 @@
 - [x] 구현 플랜 (`plans/`)
 - [x] 교차검증 + 문서 업데이트 (Vercel maxDuration, snake→camel, segmentBreakdown 등)
 
+### 협업 / 배포 준비
+- [x] GitHub 레포 생성 및 초기 푸시 (`HaleyVon/hackathon-persona`)
+
 ---
 
 ## 다음 할 일 🔲
