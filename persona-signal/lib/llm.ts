@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import {
+  DecisionMode,
+  InputType,
   PersonaRecord,
   VariantReaction,
   PersonaComparisonResult,
@@ -36,10 +38,26 @@ async function callLLM(system: string, user: string): Promise<string> {
 export async function simulatePersona(
   persona: PersonaRecord,
   productDescription: string,
+  targetCustomer: string,
+  marketType: string,
+  usageContext: string,
   variantA: string,
-  variantB: string
+  variantB: string,
+  inputType: InputType = "copy",
+  decisionMode: DecisionMode = "compare"
 ): Promise<PersonaComparisonResult> {
-  const userPrompt = buildUserPrompt(persona, productDescription, variantA, variantB);
+  const isReview = decisionMode === "review";
+  const userPrompt = buildUserPrompt(
+    persona,
+    productDescription,
+    targetCustomer,
+    marketType,
+    usageContext,
+    variantA,
+    variantB,
+    inputType,
+    isReview
+  );
 
   let raw: RawReaction | null = null;
 
@@ -57,11 +75,17 @@ export async function simulatePersona(
   }
 
   const r = raw!;
+  const reactionA = normalizeReaction(r.reactionA);
+  const reactionB =
+    decisionMode === "review"
+      ? reactionA
+      : normalizeReaction(r.reactionB);
+
   return {
     persona,
-    reactionA: normalizeReaction(r.reactionA),
-    reactionB: normalizeReaction(r.reactionB),
-    preferredVariant: r.preferredVariant ?? "Tie",
+    reactionA,
+    reactionB,
+    preferredVariant: decisionMode === "review" ? "A" : r.preferredVariant ?? "Tie",
     preferenceReason: r.preferenceReason ?? "",
   };
 }
@@ -69,19 +93,41 @@ export async function simulatePersona(
 export async function simulateAll(
   personas: PersonaRecord[],
   productDescription: string,
+  targetCustomer: string,
+  marketType: string,
+  usageContext: string,
   variantA: string,
-  variantB: string
+  variantB: string,
+  inputType: InputType = "copy",
+  decisionMode: DecisionMode = "compare"
 ): Promise<PersonaComparisonResult[]> {
   return Promise.all(
-    personas.map((p) => simulatePersona(p, productDescription, variantA, variantB))
+    personas.map((p) =>
+      simulatePersona(
+        p,
+        productDescription,
+        targetCustomer,
+        marketType,
+        usageContext,
+        variantA,
+        variantB,
+        inputType,
+        decisionMode
+      )
+    )
   );
 }
 
 export async function generateSummaryInsights(
   productDescription: string,
+  targetCustomer: string,
+  marketType: string,
+  usageContext: string,
   variantA: string,
   variantB: string,
-  results: PersonaComparisonResult[]
+  results: PersonaComparisonResult[],
+  inputType: InputType = "copy",
+  decisionMode: DecisionMode = "compare"
 ): Promise<{
   topLikedPoints: string[];
   topConcerns: string[];
@@ -91,15 +137,30 @@ export async function generateSummaryInsights(
   const reactionsText = results
     .map(
       (r, i) =>
-        `페르소나${i + 1}(${r.persona.age}세 ${r.persona.sex} ${r.persona.occupation}): ` +
-        `A반응="${r.reactionA.oneSentenceReaction}" B반응="${r.reactionB.oneSentenceReaction}" 선호=${r.preferredVariant}`
+        decisionMode === "review"
+          ? `페르소나${i + 1}(${r.persona.age}세 ${r.persona.sex} ${r.persona.occupation}): ` +
+            `반응="${r.reactionA.oneSentenceReaction}" 구매의향=${r.reactionA.purchaseIntent} ` +
+            `이해도=${r.reactionA.comprehension ?? "-"} 신뢰도=${r.reactionA.trust ?? "-"} ` +
+            `우려=${r.reactionA.concerns.join(" / ")}`
+          : `페르소나${i + 1}(${r.persona.age}세 ${r.persona.sex} ${r.persona.occupation}): ` +
+            `A반응="${r.reactionA.oneSentenceReaction}" B반응="${r.reactionB.oneSentenceReaction}" 선호=${r.preferredVariant}`
     )
     .join("\n");
 
   try {
     const text = await callLLM(
       "당신은 마케팅 리서치 분석가입니다. JSON만 출력하세요.",
-      buildSummaryPrompt(productDescription, variantA, variantB, reactionsText)
+      buildSummaryPrompt(
+        productDescription,
+        targetCustomer,
+        marketType,
+        usageContext,
+        variantA,
+        variantB,
+        reactionsText,
+        inputType,
+        decisionMode
+      )
     );
     return JSON.parse(text);
   } catch {
@@ -126,6 +187,18 @@ function normalizeReaction(r: Partial<VariantReaction>): VariantReaction {
     appeal: clamp(r?.appeal),
     resistance: clamp(r?.resistance),
     confusionRisk: clamp(r?.confusionRisk),
+    // pricing axes
+    perceivedValue: clamp(r?.perceivedValue),
+    affordability: clamp(r?.affordability),
+    willingnessToPay: clamp(r?.willingnessToPay),
+    // feature axes
+    necessity: clamp(r?.necessity),
+    urgency: clamp(r?.urgency),
+    existingSolutionAwareness: clamp(r?.existingSolutionAwareness),
+    // positioning axes
+    uniqueness: clamp(r?.uniqueness),
+    toneFit: clamp(r?.toneFit),
+    audienceFit: clamp(r?.audienceFit),
     likedPoints: r?.likedPoints ?? [],
     concerns: r?.concerns ?? [],
     memorablePhrase: r?.memorablePhrase ?? "",

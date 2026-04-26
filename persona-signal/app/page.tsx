@@ -12,6 +12,7 @@ import SegmentTable from "@/components/segment-table";
 import InsightCards from "@/components/insight-cards";
 import PersonaCard from "@/components/persona-card";
 import RiskRadar from "@/components/risk-radar";
+import TypeResultModule from "@/components/type-result-module";
 
 export default function Home() {
   const [request, setRequest] = useState<SimulationRequest>(DEMO_REQUEST);
@@ -20,8 +21,13 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleRun() {
-    if (!request.productDescription || !request.variantA || !request.variantB) {
-      setError("제품 설명과 A/B 카피를 모두 입력해주세요.");
+    const isReview = request.decisionMode === "review";
+    if (!request.productDescription || !request.targetCustomer || !request.variantA) {
+      setError("제품 설명, 주 타깃 고객, 검토 내용을 입력해주세요.");
+      return;
+    }
+    if (!isReview && !request.variantB) {
+      setError("A/B 비교 모드에서는 두 번째 안도 입력해주세요.");
       return;
     }
     setLoading(true);
@@ -133,13 +139,22 @@ export default function Home() {
               />
 
               {/* 리스크 레이더 */}
-              {result.summary.riskAxesA && result.summary.riskAxesB && (
-                <Section title="5축 리스크 비교" highlight>
+              {result.summary.riskAxesA && (
+                <Section title={result.summary.riskAxesB ? "5축 리스크 비교" : "5축 리스크 분석"} highlight>
                   <RiskRadar
                     axesA={result.summary.riskAxesA}
                     axesB={result.summary.riskAxesB}
                   />
                 </Section>
+              )}
+
+              {/* 타입별 추가 모듈 */}
+              {result.summary.typeAxesA && (
+                <TypeResultModule
+                  inputType={result.summary.inputType ?? "copy"}
+                  axesA={result.summary.typeAxesA}
+                  axesB={result.summary.typeAxesB}
+                />
               )}
 
               {/* 차트 */}
@@ -148,6 +163,7 @@ export default function Home() {
                   results={result.personas}
                   avgScoreA={result.summary.avgScoreA}
                   avgScoreB={result.summary.avgScoreB}
+                  decisionMode={result.summary.decisionMode}
                 />
               </Section>
 
@@ -167,7 +183,12 @@ export default function Home() {
               <Section title={`페르소나 반응 (${result.personas.length}명)`}>
                 <div className="space-y-3">
                   {result.personas.map((r, i) => (
-                    <PersonaCard key={i} result={r} index={i} />
+                    <PersonaCard
+                      key={i}
+                      result={r}
+                      index={i}
+                      decisionMode={result.summary.decisionMode}
+                    />
                   ))}
                 </div>
               </Section>

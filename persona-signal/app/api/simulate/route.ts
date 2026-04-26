@@ -8,8 +8,11 @@ import { buildSummary } from "@/lib/summarize";
 
 const RequestSchema = z.object({
   productDescription: z.string().min(5),
+  targetCustomer: z.string().min(3),
+  marketType: z.enum(["B2B", "B2C", "B2B2C"]),
+  usageContext: z.string().default(""),
   variantA: z.string().min(1),
-  variantB: z.string().min(1),
+  variantB: z.string().default(""),
   filters: z.object({
     sexes: z.array(z.string()),
     ageMin: z.number().min(0).max(100),
@@ -19,6 +22,8 @@ const RequestSchema = z.object({
     maritalStatuses: z.array(z.string()).optional().default([]),
   }),
   sampleSize: z.number().min(1).max(10),
+  decisionMode: z.enum(["compare", "review"]).default("compare"),
+  inputType: z.enum(["copy", "pricing", "feature", "positioning"]).default("copy"),
 });
 
 export async function POST(req: NextRequest) {
@@ -33,7 +38,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { productDescription, variantA, variantB, filters, sampleSize } = parsed.data;
+    const {
+      productDescription,
+      targetCustomer,
+      marketType,
+      usageContext,
+      variantA,
+      variantB,
+      filters,
+      sampleSize,
+      decisionMode,
+      inputType,
+    } = parsed.data;
+
+    // review 모드에서 variantB가 비어있으면 variantA 복사
+    const effectiveB = decisionMode === "review" && !variantB ? variantA : variantB;
 
     // 1. 페르소나 샘플링
     const personas = await samplePersonas(filters, sampleSize);
@@ -45,18 +64,33 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. 병렬 LLM 시뮬레이션
-    const results = await simulateAll(personas, productDescription, variantA, variantB);
+    const results = await simulateAll(
+      personas,
+      productDescription,
+      targetCustomer,
+      marketType,
+      usageContext,
+      variantA,
+      effectiveB,
+      inputType,
+      decisionMode
+    );
 
     // 3. 요약 LLM 호출
     const insights = await generateSummaryInsights(
       productDescription,
+      targetCustomer,
+      marketType,
+      usageContext,
       variantA,
-      variantB,
-      results
+      effectiveB,
+      results,
+      inputType,
+      decisionMode
     );
 
     // 4. 집계
-    const summary = buildSummary(results, insights);
+    const summary = buildSummary(results, insights, inputType, decisionMode);
 
     return NextResponse.json({ summary, personas: results });
   } catch (err) {

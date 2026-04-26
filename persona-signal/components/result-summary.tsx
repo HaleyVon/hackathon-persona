@@ -1,4 +1,4 @@
-import { RiskAxes, SimulationSummary } from "@/lib/types";
+import { SimulationSummary } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Props {
@@ -8,6 +8,10 @@ interface Props {
 }
 
 export default function ResultSummary({ summary, variantA, variantB }: Props) {
+  if (summary.decisionMode === "review") {
+    return <ReviewSummary summary={summary} variantA={variantA} />;
+  }
+
   const { riskAxesA, riskAxesB, winner } = summary;
 
   // Card 1: 더 명확한 안 (comprehension 기준)
@@ -88,6 +92,71 @@ export default function ResultSummary({ summary, variantA, variantB }: Props) {
               </p>
               <p className="text-xs text-slate-500 mt-2 leading-relaxed">
                 {highConfusionScore && highConfusionScore > 3 ? "오해 가능성 높음 — 문구 구체화 필요" : "혼란 리스크 낮음"}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-slate-400">데이터 없음</p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function ReviewSummary({
+  summary, variantA,
+}: {
+  summary: SimulationSummary;
+  variantA: string;
+}) {
+  const trust = summary.riskAxesA?.trust;
+  const confusion = summary.riskAxesA?.confusionRisk;
+
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      <Card className="border-blue-100 bg-blue-50/50">
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">전체 반응</p>
+          <p className="text-3xl font-bold text-blue-600">
+            {summary.avgScoreA.toFixed(1)}
+            <span className="text-sm font-normal text-slate-400 ml-1">사용 의향 / 5</span>
+          </p>
+          <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+            {variantA}
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className={`${trust !== undefined && trust < 3 ? "border-amber-200 bg-amber-50/50" : "border-slate-100"}`}>
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">신뢰 리스크</p>
+          {trust !== undefined ? (
+            <>
+              <p className={`text-3xl font-bold ${trust < 3 ? "text-amber-600" : "text-slate-600"}`}>
+                {trust.toFixed(1)}
+                <span className="text-sm font-normal text-slate-400 ml-1">trust / 5</span>
+              </p>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                {trust < 3 ? "신뢰 보강 요소가 필요합니다." : "신뢰도는 비교적 양호합니다."}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-slate-400">데이터 없음</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className={`${confusion !== undefined && confusion > 3 ? "border-red-200 bg-red-50/50" : "border-slate-100"}`}>
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">혼란 리스크</p>
+          {confusion !== undefined ? (
+            <>
+              <p className={`text-3xl font-bold ${confusion > 3 ? "text-red-600" : "text-slate-600"}`}>
+                {confusion.toFixed(1)}
+                <span className="text-sm font-normal text-slate-400 ml-1">혼란 / 5</span>
+              </p>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                {confusion > 3 ? "메시지가 추상적이거나 오해될 수 있습니다." : "메시지 이해도는 비교적 안정적입니다."}
               </p>
             </>
           ) : (

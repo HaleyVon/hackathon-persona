@@ -38,21 +38,43 @@ export type SimulationFilters = {
   maritalStatuses: string[];
 };
 
+export type DecisionMode = "compare" | "review";
+export type InputType = "copy" | "pricing" | "feature" | "positioning";
+export type MarketType = "B2B" | "B2C" | "B2B2C";
+
 export type SimulationRequest = {
   productDescription: string;
+  targetCustomer: string;
+  marketType: MarketType;
+  usageContext: string;
   variantA: string;
   variantB: string;
   filters: SimulationFilters;
   sampleSize: number;
+  decisionMode: DecisionMode;
+  inputType: InputType;
 };
 
 export type VariantReaction = {
-  purchaseIntent: number; // 1~5
-  comprehension?: number; // 이해도 1~5
-  trust?: number;         // 신뢰도 1~5
-  appeal?: number;        // 매력도 1~5
-  resistance?: number;    // 거부감 1~5 (높을수록 위험)
-  confusionRisk?: number; // 혼란 리스크 1~5 (높을수록 위험)
+  purchaseIntent: number;
+  // 공통 5축
+  comprehension?: number;
+  trust?: number;
+  appeal?: number;
+  resistance?: number;
+  confusionRisk?: number;
+  // 가격/플랜 추가 축
+  perceivedValue?: number;
+  affordability?: number;
+  willingnessToPay?: number;
+  // 기능/아이디어 추가 축
+  necessity?: number;
+  urgency?: number;
+  existingSolutionAwareness?: number;
+  // 포지셔닝/브랜드 추가 축
+  uniqueness?: number;
+  toneFit?: number;
+  audienceFit?: number;
   likedPoints: string[];
   concerns: string[];
   memorablePhrase: string;
@@ -89,11 +111,15 @@ export type SimulationSummary = {
   avgScoreB: number;
   riskAxesA?: RiskAxes;
   riskAxesB?: RiskAxes;
+  typeAxesA?: Record<string, number>;
+  typeAxesB?: Record<string, number>;
   topLikedPoints: string[];
   topConcerns: string[];
   recommendedCopies: string[];
   oneParagraphInsight: string;
   segmentBreakdown: SegmentBreakdown[];
+  decisionMode?: DecisionMode;
+  inputType?: InputType;
 };
 
 export type SimulationResponse = {

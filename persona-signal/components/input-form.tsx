@@ -4,6 +4,7 @@ import { SimulationRequest } from "@/lib/types";
 import {
   PROVINCE_OPTIONS, SAMPLE_SIZE_OPTIONS, SEX_OPTIONS,
   OCCUPATION_OPTIONS, MARITAL_OPTIONS, TARGET_PRESETS, AGE_PRESETS,
+  DECISION_MODE_OPTIONS, INPUT_TYPE_OPTIONS, MVP_INPUT_TYPE_OPTIONS, MARKET_TYPE_OPTIONS,
 } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -42,56 +43,187 @@ export default function InputForm({ value, onChange, loading }: Props) {
     setFilter(p.filters);
   }
 
+  const isReview = value.decisionMode === "review";
+  const selectedType = INPUT_TYPE_OPTIONS.find((o) => o.value === value.inputType);
+
+  const inputLabels: Record<string, { a: string; b: string; placeholder: string }> = {
+    copy: { a: "카피 A", b: "카피 B", placeholder: "예: 회의록을 자동으로 정리해주는 AI 비서" },
+    pricing: { a: "플랜 A", b: "플랜 B", placeholder: "예: 월 9,900원 / 팀 멤버 무제한" },
+    feature: { a: "아이디어 A", b: "아이디어 B", placeholder: "예: 회의 종료 후 자동으로 할 일 목록 생성" },
+    positioning: { a: "메시지 A", b: "메시지 B", placeholder: "예: 팀을 위한 AI 생산성 도구" },
+  };
+  const labels = inputLabels[value.inputType] ?? inputLabels.copy;
+
   return (
     <div className="space-y-4">
-      {/* 제품 설명 */}
+      {/* Step 1: 결정 모드 */}
       <Card className="border-slate-100">
         <CardContent className="pt-4 pb-4">
-          <label className="block text-xs font-semibold text-slate-500 mb-2">
-            제품 / 서비스 설명
+          <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+            Step 1 — 무엇을 하시겠어요?
           </label>
-          <textarea
-            className="w-full text-sm text-slate-700 bg-transparent resize-none outline-none placeholder:text-slate-300 leading-relaxed"
-            rows={3}
-            placeholder="예: AI가 회의록과 업무를 자동으로 정리해주는 팀 생산성 도구"
-            value={value.productDescription}
-            onChange={(e) => set({ productDescription: e.target.value })}
-            disabled={loading}
-          />
+          <div className="flex gap-2">
+            {DECISION_MODE_OPTIONS.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => set({ decisionMode: m.value })}
+                disabled={loading}
+                className={`flex-1 text-sm py-2.5 rounded-xl border transition-colors ${
+                  value.decisionMode === m.value
+                    ? "border-blue-500 bg-blue-600 text-white font-semibold"
+                    : "border-slate-200 text-slate-500 hover:border-blue-200 hover:bg-blue-50"
+                }`}
+              >
+                <div className="font-semibold">{m.label}</div>
+                <div className={`text-xs mt-0.5 ${value.decisionMode === m.value ? "text-blue-100" : "text-slate-400"}`}>
+                  {m.description}
+                </div>
+              </button>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
-      {/* A/B 카피 */}
+      {/* Step 2: 입력 타입 */}
+      <Card className="border-slate-100">
+        <CardContent className="pt-4 pb-4">
+          <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+            Step 2 — 무엇을 검토할 건가요?
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {MVP_INPUT_TYPE_OPTIONS.map((t) => (
+              <button
+                key={t.value}
+                onClick={() => set({ inputType: t.value })}
+                disabled={loading}
+                className={`text-left px-3 py-2.5 rounded-xl border transition-colors ${
+                  value.inputType === t.value
+                    ? "border-indigo-400 bg-indigo-50"
+                    : "border-slate-200 hover:border-indigo-200 hover:bg-indigo-50/40"
+                }`}
+              >
+                <div className={`text-xs font-bold ${value.inputType === t.value ? "text-indigo-700" : "text-slate-600"}`}>
+                  {t.emoji} {t.label}
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5 leading-tight">{t.description}</div>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 제품 맥락 */}
+      <Card className="border-slate-100">
+        <CardContent className="pt-4 pb-4 space-y-4">
+          <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+            Step 3 — 제품 맥락
+          </label>
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5">제품 / 서비스 설명</label>
+            <textarea
+              className="w-full text-sm text-slate-700 bg-transparent resize-none outline-none placeholder:text-slate-300 leading-relaxed"
+              rows={3}
+              placeholder="예: AI가 회의록과 업무를 자동으로 정리해주는 팀 생산성 도구"
+              value={value.productDescription}
+              onChange={(e) => set({ productDescription: e.target.value })}
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5">주 타깃 고객</label>
+            <input
+              className="w-full text-sm text-slate-700 border border-slate-200 rounded-lg px-3 py-2 outline-none placeholder:text-slate-300"
+              placeholder="예: 업무 효율을 높이고 싶은 20~40대 팀 리더와 실무자"
+              value={value.targetCustomer}
+              onChange={(e) => set({ targetCustomer: e.target.value })}
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-2">시장 유형</label>
+            <div className="grid grid-cols-3 gap-2">
+              {MARKET_TYPE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => set({ marketType: option.value })}
+                  disabled={loading}
+                  className={`text-left px-3 py-2 rounded-xl border transition-colors ${
+                    value.marketType === option.value
+                      ? "border-slate-700 bg-slate-700 text-white"
+                      : "border-slate-200 hover:border-slate-300 text-slate-600"
+                  }`}
+                >
+                  <div className="text-xs font-bold">{option.label}</div>
+                  <div className={`text-[11px] mt-0.5 leading-tight ${value.marketType === option.value ? "text-slate-200" : "text-slate-400"}`}>
+                    {option.description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5">사용 / 구매 맥락</label>
+            <textarea
+              className="w-full text-sm text-slate-700 border border-slate-200 rounded-lg px-3 py-2 resize-none outline-none placeholder:text-slate-300 leading-relaxed"
+              rows={2}
+              placeholder="예: 협업툴 도입을 검토 중이고, 회의 후 정리 비용을 줄일 수 있는지 판단하려는 상황"
+              value={value.usageContext}
+              onChange={(e) => set({ usageContext: e.target.value })}
+              disabled={loading}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* A/B 입력 */}
       <Card className="border-slate-100">
         <CardContent className="pt-4 pb-4 space-y-3">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Step 4 — {isReview ? "검토할 내용" : "비교할 두 안"}
+            </label>
+            {selectedType && (
+              <span className="text-xs text-slate-400">{selectedType.emoji} {selectedType.label}</span>
+            )}
+          </div>
           <div>
-            <label className="block text-xs font-semibold text-blue-500 mb-1.5">카피 A</label>
+            <label className="block text-xs font-semibold text-blue-500 mb-1.5">
+              {isReview ? "검토 내용" : labels.a}
+            </label>
             <textarea
               className="w-full text-sm text-slate-700 bg-blue-50 rounded-lg px-3 py-2 resize-none outline-none placeholder:text-slate-300 leading-relaxed"
               rows={2}
-              placeholder="첫 번째 카피를 입력하세요"
+              placeholder={labels.placeholder}
               value={value.variantA}
               onChange={(e) => set({ variantA: e.target.value })}
               disabled={loading}
             />
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-violet-500 mb-1.5">카피 B</label>
-            <textarea
-              className="w-full text-sm text-slate-700 bg-violet-50 rounded-lg px-3 py-2 resize-none outline-none placeholder:text-slate-300 leading-relaxed"
-              rows={2}
-              placeholder="두 번째 카피를 입력하세요"
-              value={value.variantB}
-              onChange={(e) => set({ variantB: e.target.value })}
-              disabled={loading}
-            />
-          </div>
+          {!isReview && (
+            <div>
+              <label className="block text-xs font-semibold text-violet-500 mb-1.5">{labels.b}</label>
+              <textarea
+                className="w-full text-sm text-slate-700 bg-violet-50 rounded-lg px-3 py-2 resize-none outline-none placeholder:text-slate-300 leading-relaxed"
+                rows={2}
+                placeholder={labels.placeholder}
+                value={value.variantB}
+                onChange={(e) => set({ variantB: e.target.value })}
+                disabled={loading}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* 타겟 설정 */}
       <Card className="border-slate-100">
         <CardContent className="pt-4 pb-4 space-y-4">
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Step 5 — 누구 관점으로 볼까요?
+          </label>
           {/* 프리셋 */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 mb-2">
@@ -252,8 +384,8 @@ export default function InputForm({ value, onChange, loading }: Props) {
       {/* 샘플 수 */}
       <Card className="border-slate-100">
         <CardContent className="pt-3 pb-3">
-          <label className="block text-xs font-semibold text-slate-500 mb-2">
-            샘플 페르소나 수
+          <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">
+            Step 6 — 샘플 페르소나 수
           </label>
           <div className="flex gap-2">
             {SAMPLE_SIZE_OPTIONS.map((n) => (

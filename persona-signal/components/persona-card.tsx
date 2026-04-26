@@ -1,20 +1,24 @@
 "use client";
 import { useState } from "react";
-import { PersonaComparisonResult } from "@/lib/types";
+import { DecisionMode, PersonaComparisonResult } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Props {
   result: PersonaComparisonResult;
   index: number;
+  decisionMode?: DecisionMode;
 }
 
-export default function PersonaCard({ result, index }: Props) {
+export default function PersonaCard({ result, index, decisionMode = "compare" }: Props) {
   const [expanded, setExpanded] = useState(false);
   const { persona, reactionA, reactionB, preferredVariant, preferenceReason } = result;
+  const isReview = decisionMode === "review";
 
   const winnerColor =
-    preferredVariant === "A"
+    isReview
+      ? "bg-blue-100 text-blue-700 border-blue-200"
+      : preferredVariant === "A"
       ? "bg-blue-100 text-blue-700 border-blue-200"
       : preferredVariant === "B"
       ? "bg-violet-100 text-violet-700 border-violet-200"
@@ -41,7 +45,7 @@ export default function PersonaCard({ result, index }: Props) {
             </p>
           </div>
           <Badge className={`text-xs shrink-0 ${winnerColor}`}>
-            {preferredVariant === "Tie" ? "동률" : `카피 ${preferredVariant} 선호`}
+            {isReview ? "단일 검토" : preferredVariant === "Tie" ? "동률" : `카피 ${preferredVariant} 선호`}
           </Badge>
         </div>
 
@@ -51,9 +55,9 @@ export default function PersonaCard({ result, index }: Props) {
         </p>
 
         {/* A/B 반응 요약 */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
+        <div className={`grid gap-2 mb-3 ${isReview ? "grid-cols-1" : "grid-cols-2"}`}>
           <ReactionBlock label="카피 A" color="blue" reaction={reactionA} />
-          <ReactionBlock label="카피 B" color="violet" reaction={reactionB} />
+          {!isReview && <ReactionBlock label="카피 B" color="violet" reaction={reactionB} />}
         </div>
 
         {/* 상세 토글 */}
@@ -65,9 +69,9 @@ export default function PersonaCard({ result, index }: Props) {
         </button>
 
         {expanded && (
-          <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className={`mt-3 grid gap-3 ${isReview ? "grid-cols-1" : "grid-cols-2"}`}>
             <DetailBlock label="카피 A" color="blue" reaction={reactionA} />
-            <DetailBlock label="카피 B" color="violet" reaction={reactionB} />
+            {!isReview && <DetailBlock label="카피 B" color="violet" reaction={reactionB} />}
           </div>
         )}
       </CardContent>
@@ -126,7 +130,7 @@ function DetailBlock({
       {reaction.memorablePhrase && (
         <div>
           <p className="text-[10px] text-slate-400 mb-0.5">기억에 남는 표현</p>
-          <p className="text-[11px] text-slate-600 italic">"{reaction.memorablePhrase}"</p>
+          <p className="text-[11px] text-slate-600 italic">&quot;{reaction.memorablePhrase}&quot;</p>
         </div>
       )}
     </div>

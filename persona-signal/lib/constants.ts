@@ -29,6 +29,28 @@ export const MARITAL_OPTIONS = [
 
 export const SAMPLE_SIZE_OPTIONS = [3, 5, 8, 10];
 
+export const DECISION_MODE_OPTIONS = [
+  { value: "compare" as const, label: "A/B 비교", description: "두 안 중 무엇이 더 나은가" },
+  { value: "review" as const, label: "단일 검토", description: "이 안이 괜찮은가" },
+];
+
+export const INPUT_TYPE_OPTIONS = [
+  { value: "copy" as const, label: "카피/메시지", emoji: "✍️", description: "슬로건, 헤드라인, CTA, 광고 카피" },
+  { value: "pricing" as const, label: "가격/플랜", emoji: "💰", description: "가격 정책, 플랜 구성, 무료/유료 경계" },
+  { value: "feature" as const, label: "기능/아이디어", emoji: "⚡", description: "기능 추가 여부, MVP 포함 여부, 유저 플로우" },
+  { value: "positioning" as const, label: "포지셔닝/브랜드", emoji: "🎯", description: "차별화 메시지, 톤앤매너, B2B↔B2C 방향" },
+];
+
+export const MVP_INPUT_TYPE_OPTIONS = INPUT_TYPE_OPTIONS.filter(
+  (option) => option.value !== "positioning"
+);
+
+export const MARKET_TYPE_OPTIONS = [
+  { value: "B2B" as const, label: "B2B", description: "팀/회사 구매, 의사결정자와 사용자가 다를 수 있음" },
+  { value: "B2C" as const, label: "B2C", description: "개인 사용자가 직접 판단하고 결제하는 맥락" },
+  { value: "B2B2C" as const, label: "B2B2C", description: "기업 도입이지만 최종 사용자는 일반 소비자" },
+];
+
 // ─── 타겟 프리셋 ───────────────────────────────────────────
 export type TargetPreset = {
   id: string;
@@ -98,6 +120,9 @@ export const TARGET_PRESETS: TargetPreset[] = [
 // ─── 데모 기본값 ───────────────────────────────────────────
 export const DEMO_REQUEST = {
   productDescription: "AI가 회의록과 업무를 자동으로 정리해주는 팀 생산성 도구",
+  targetCustomer: "25~42세의 IT/기획/마케팅 직군 팀 리더와 실무자",
+  marketType: "B2B" as const,
+  usageContext: "반복되는 회의 후 액션 아이템 정리와 팀 공유가 번거로운 협업 환경",
   variantA: "회의록과 업무를 자동으로 정리하는 AI 비서",
   variantB: "퇴근 시간을 앞당겨주는 실무형 AI 워크 어시스턴트",
   filters: {
@@ -109,4 +134,6 @@ export const DEMO_REQUEST = {
     maritalStatuses: [] as string[],
   },
   sampleSize: 5,
+  decisionMode: "compare" as const,
+  inputType: "copy" as const,
 };

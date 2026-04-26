@@ -1,7 +1,6 @@
-import { PersonaComparisonResult, RiskAxes, SegmentBreakdown, SimulationSummary } from "./types";
+import { InputType, PersonaComparisonResult, RiskAxes, SegmentBreakdown, SimulationSummary, VariantReaction } from "./types";
 
 type AxesKey = keyof RiskAxes;
-const AXES: AxesKey[] = ["comprehension", "trust", "appeal", "resistance", "confusionRisk"];
 
 function avgAxis(results: PersonaComparisonResult[], side: "A" | "B", axis: AxesKey): number {
   const vals = results
@@ -26,6 +25,34 @@ function buildRiskAxes(results: PersonaComparisonResult[], side: "A" | "B"): Ris
   };
 }
 
+const TYPE_AXES: Record<InputType, (keyof VariantReaction)[]> = {
+  copy: [],
+  pricing: ["perceivedValue", "affordability", "willingnessToPay"],
+  feature: ["necessity", "urgency", "existingSolutionAwareness"],
+  positioning: ["uniqueness", "toneFit", "audienceFit"],
+};
+
+function buildTypeAxes(
+  results: PersonaComparisonResult[],
+  side: "A" | "B",
+  inputType: InputType
+): Record<string, number> | undefined {
+  const keys = TYPE_AXES[inputType];
+  if (keys.length === 0) return undefined;
+  const out: Record<string, number> = {};
+  let hasAny = false;
+  for (const key of keys) {
+    const vals = results
+      .map((r) => (side === "A" ? r.reactionA : r.reactionB)[key as keyof VariantReaction])
+      .filter((v): v is number => typeof v === "number");
+    if (vals.length > 0) {
+      out[key] = Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
+      hasAny = true;
+    }
+  }
+  return hasAny ? out : undefined;
+}
+
 export function buildSummary(
   results: PersonaComparisonResult[],
   insights: {
@@ -33,23 +60,33 @@ export function buildSummary(
     topConcerns: string[];
     recommendedCopies: string[];
     oneParagraphInsight: string;
-  }
+  },
+  inputType: InputType = "copy",
+  decisionMode: "compare" | "review" = "compare"
 ): SimulationSummary {
+  const isReview = decisionMode === "review";
   const avgScoreA =
     results.reduce((s, r) => s + r.reactionA.purchaseIntent, 0) / results.length;
-  const avgScoreB =
+  const rawAvgScoreB =
     results.reduce((s, r) => s + r.reactionB.purchaseIntent, 0) / results.length;
+  const avgScoreB = isReview ? avgScoreA : rawAvgScoreB;
 
   const winner: "A" | "B" | "Tie" =
-    avgScoreA > avgScoreB + 0.2 ? "A" : avgScoreB > avgScoreA + 0.2 ? "B" : "Tie";
+    isReview
+      ? "A"
+      : avgScoreA > avgScoreB + 0.2 ? "A" : avgScoreB > avgScoreA + 0.2 ? "B" : "Tie";
 
   return {
     winner,
     avgScoreA: Math.round(avgScoreA * 10) / 10,
     avgScoreB: Math.round(avgScoreB * 10) / 10,
     riskAxesA: buildRiskAxes(results, "A"),
-    riskAxesB: buildRiskAxes(results, "B"),
-    segmentBreakdown: buildSegmentBreakdown(results),
+    riskAxesB: isReview ? undefined : buildRiskAxes(results, "B"),
+    typeAxesA: buildTypeAxes(results, "A", inputType),
+    typeAxesB: isReview ? undefined : buildTypeAxes(results, "B", inputType),
+    segmentBreakdown: isReview ? [] : buildSegmentBreakdown(results),
+    decisionMode,
+    inputType,
     ...insights,
   };
 }
