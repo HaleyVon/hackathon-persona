@@ -7,7 +7,7 @@
 
 ## 현재 상태
 
-**단계:** 구현 중 (H6/H7)
+**단계:** 랜딩 + 플로우 UI 구현 완료
 **마지막 업데이트:** 2026-04-26
 **남은 시간(추정):** 해커톤 진행 중
 
@@ -111,6 +111,21 @@
 
 ### 협업 / 배포 준비
 - [x] GitHub 레포 생성 및 초기 푸시 (`HaleyVon/hackathon-persona`)
+
+### 랜딩 + 풀페이지 플로우 UI (2026-04-26)
+- [x] 3-phase state machine 도입: `landing → flow → results`
+- [x] `three` + `@types/three` 패키지 설치
+- [x] `components/landing/HeroSection.tsx` — Three.js 라이트 파티클 + fade-in 텍스트
+- [x] `components/landing/ProblemSection.tsx` — 공감 섹션
+- [x] `components/landing/ValueSection.tsx` — 어떤 의사결정을 돕는지
+- [x] `components/landing/PreviewSection.tsx` — 결과 예시 목업
+- [x] `components/landing/TargetSection.tsx` — 대상 사용자 카드
+- [x] `components/landing/CTASection.tsx` — 시뮬레이션 시작하기 CTA
+- [x] `components/flow/FlowContainer.tsx` — Typeform 스타일 translateY 슬라이드 전환
+- [x] `components/flow/FlowDemoBar.tsx` — 플로팅 데모 케이스 퀵 셀렉터
+- [x] `components/flow/Step1Mode.tsx` ~ `Step6Run.tsx` — 6단계 풀페이지 입력 플로우
+- [x] Results phase: 기존 컴포넌트 전부 재활용, `← 다시 설정` 버튼 추가
+- [x] 빌드 검증 완료 (`npm run build` 통과)
 
 ---
 
