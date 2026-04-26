@@ -13,6 +13,7 @@ import InsightCards from "@/components/insight-cards";
 import PersonaCard from "@/components/persona-card";
 import RiskRadar from "@/components/risk-radar";
 import TypeResultModule from "@/components/type-result-module";
+import DecisionBrief from "@/components/decision-brief";
 
 export default function Home() {
   const [request, setRequest] = useState<SimulationRequest>(DEMO_REQUEST);
@@ -131,6 +132,12 @@ export default function Home() {
 
           {!loading && result && (
             <div className="space-y-6">
+              <DecisionBrief
+                summary={result.summary}
+                variantA={request.variantA}
+                variantB={request.variantB}
+              />
+
               {/* KPI 카드 */}
               <ResultSummary
                 summary={result.summary}
@@ -138,9 +145,27 @@ export default function Home() {
                 variantB={request.variantB}
               />
 
+              {/* 타입별 추가 모듈 */}
+              {result.summary.typeAxesA && (
+                <Section title="타입별 심층 해석" highlight>
+                  <TypeResultModule
+                    inputType={result.summary.inputType ?? "copy"}
+                    axesA={result.summary.typeAxesA}
+                    axesB={result.summary.typeAxesB}
+                  />
+                </Section>
+              )}
+
+              {/* 세그먼트 차이 */}
+              {result.summary.segmentBreakdown.length > 0 && (
+                <Section title="세그먼트별 차이" highlight>
+                  <SegmentTable breakdown={result.summary.segmentBreakdown} />
+                </Section>
+              )}
+
               {/* 리스크 레이더 */}
               {result.summary.riskAxesA && (
-                <Section title={result.summary.riskAxesB ? "5축 리스크 비교" : "5축 리스크 분석"} highlight>
+                <Section title={result.summary.riskAxesB ? "공통 평가축 비교" : "공통 평가축 분석"}>
                   <RiskRadar
                     axesA={result.summary.riskAxesA}
                     axesB={result.summary.riskAxesB}
@@ -148,17 +173,8 @@ export default function Home() {
                 </Section>
               )}
 
-              {/* 타입별 추가 모듈 */}
-              {result.summary.typeAxesA && (
-                <TypeResultModule
-                  inputType={result.summary.inputType ?? "copy"}
-                  axesA={result.summary.typeAxesA}
-                  axesB={result.summary.typeAxesB}
-                />
-              )}
-
               {/* 차트 */}
-              <Section title="매력도 비교">
+              <Section title={result.summary.decisionMode === "review" ? "반응 분포" : "비교 점수 분포"}>
                 <ScoreChart
                   results={result.personas}
                   avgScoreA={result.summary.avgScoreA}
@@ -167,15 +183,8 @@ export default function Home() {
                 />
               </Section>
 
-              {/* 세그먼트 분화 — 와우 모먼트 */}
-              {result.summary.segmentBreakdown.length > 0 && (
-                <Section title="세그먼트별 선호도" highlight>
-                  <SegmentTable breakdown={result.summary.segmentBreakdown} />
-                </Section>
-              )}
-
-              {/* 인사이트 */}
-              <Section title="AI 인사이트">
+              {/* 세부 인사이트 */}
+              <Section title="세부 인사이트">
                 <InsightCards summary={result.summary} />
               </Section>
 

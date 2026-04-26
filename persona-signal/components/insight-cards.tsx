@@ -8,30 +8,30 @@ interface Props {
 export default function InsightCards({ summary }: Props) {
   return (
     <div className="space-y-3">
-      {/* 핵심 리스크 인사이트 */}
+      {/* 해석 문장 */}
       <div className="rounded-xl bg-slate-800 text-white px-4 py-3">
-        <p className="text-xs text-slate-400 mb-1">리스크 인사이트</p>
+        <p className="text-xs text-slate-400 mb-1">해석 메모</p>
         <p className="text-sm leading-relaxed">{summary.oneParagraphInsight}</p>
       </div>
 
-      {/* 3개 리스크 카드 */}
+      {/* 세부 근거 카드 */}
       <div className="grid grid-cols-3 gap-3">
         <RiskCard
-          title="혼란 유발 표현"
+          title="리스크 근거"
           icon="⚡"
           color="red"
           items={summary.topConcerns.slice(0, 3)}
-          emptyMsg="혼란 포인트 없음"
+          emptyMsg="리스크 근거 없음"
         />
         <RiskCard
-          title="공통 호감 요소"
+          title="유지할 강점"
           icon="✓"
           color="emerald"
           items={summary.topLikedPoints.slice(0, 3)}
-          emptyMsg="호감 포인트 없음"
+          emptyMsg="강점 포인트 없음"
         />
         <RiskCard
-          title="개선 방향 제안"
+          title="수정 카피 초안"
           icon="→"
           color="blue"
           items={summary.recommendedCopies.slice(0, 3)}
