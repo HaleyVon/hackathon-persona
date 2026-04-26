@@ -16,6 +16,7 @@ const RequestSchema = z.object({
     ageMax: z.number().min(0).max(100),
     occupations: z.array(z.string()),
     provinces: z.array(z.string()),
+    maritalStatuses: z.array(z.string()).optional().default([]),
   }),
   sampleSize: z.number().min(1).max(10),
 });

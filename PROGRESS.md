@@ -15,6 +15,14 @@
 
 ## 완료된 작업 ✅
 
+### 제품 재정의 (2026-04-26)
+- [x] 포지션 재정의: "페르소나 생성기" → "제품팀 pre-validation workflow tool"
+- [x] 5축 평가 모델 도입: comprehension / trust / appeal / resistance / confusionRisk
+- [x] 리스크 중심 UI: 승자/패자 프레임 → 더 명확한 안 / 신뢰 리스크 / 혼란 리스크 카드
+- [x] RiskRadar 컴포넌트 신규: 5축 레이더 차트 (A vs B 오버레이)
+- [x] 소비자 페르소나 프롬프트 강화: 8개 행동 규칙 + 5축 구체적 기준 적용
+- [x] 요약 프롬프트 강화: 혼란/리스크 원인 구체화 지시
+
 ### 인프라 / 데이터
 - [x] Supabase 프로젝트 연결 (`ijptkmnrhvrujvyvrpth`)
 - [x] `personas` 테이블 생성 — 원본 26개 필드 전부 + `raw JSONB`
@@ -73,8 +81,8 @@
   - 내용: 리스크 5축 필드를 포함한 실제형 API 응답 저장
   - 목적: 발표 중 네트워크/LLM 불안정 시 데모 강행 가능
 
-- [ ] **데모 모드 토글 추가**
-  - `app/page.tsx`에 "데모 모드" 버튼 추가
+- [x] **데모 모드 토글 추가**
+  - `app/page.tsx`에 "⚡ 데모 모드" 버튼 추가
   - API 대신 `demo-response.json`을 바로 렌더링
 
 - [ ] **Vercel 배포**

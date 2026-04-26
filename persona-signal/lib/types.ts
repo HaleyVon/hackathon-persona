@@ -35,6 +35,7 @@ export type SimulationFilters = {
   ageMax: number;
   occupations: string[];
   provinces: string[];
+  maritalStatuses: string[];
 };
 
 export type SimulationRequest = {
