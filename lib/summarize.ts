@@ -126,7 +126,6 @@ function buildCautionSignals(params: {
   productDescription?: string;
   targetCustomer?: string;
   usageContext?: string;
-  relevanceMix?: Record<RelevanceLevel, number>;
 }): SummaryCautionSignal[] {
   const {
     results,
@@ -139,7 +138,6 @@ function buildCautionSignals(params: {
     productDescription = "",
     targetCustomer = "",
     usageContext = "",
-    relevanceMix = { high: 0, medium: 0, low: 0 },
   } = params;
 
   const cautions: SummaryCautionSignal[] = [];
@@ -169,15 +167,6 @@ function buildCautionSignals(params: {
       code: "missing_context",
       label: "맥락 부족",
       description: "제품 설명, 주 타깃, 사용 맥락이 짧으면 결과가 일반론에 가까워질 수 있습니다.",
-      severity: "warning",
-    });
-  }
-
-  if (relevanceMix.low >= 25) {
-    cautions.push({
-      code: "low_relevance_mix",
-      label: "비타깃 표본 섞임",
-      description: `현재 표본의 ${relevanceMix.low.toFixed(0)}%가 low relevance입니다. 전체 평균보다 high/medium relevance 반응을 더 우선해서 읽는 편이 안전합니다.`,
       severity: "warning",
     });
   }
@@ -424,7 +413,6 @@ function buildUnexpectedSignals(params: {
   avgScoreB: number;
   riskAxesA?: RiskAxes;
   riskAxesB?: RiskAxes;
-  relevanceMix: Record<RelevanceLevel, number>;
   segmentBreakdown: SegmentBreakdown[];
   segmentInsights?: SegmentInsights;
 }): UnexpectedSignal[] {
@@ -435,7 +423,6 @@ function buildUnexpectedSignals(params: {
     avgScoreB,
     riskAxesA,
     riskAxesB,
-    relevanceMix,
     segmentBreakdown,
     segmentInsights,
   } = params;
@@ -443,15 +430,6 @@ function buildUnexpectedSignals(params: {
   const selectedAxes = decisionMode === "review" || winner !== "B" ? riskAxesA : riskAxesB;
   const selectedScore = decisionMode === "review" || winner !== "B" ? avgScoreA : avgScoreB;
   const selectedClarity = selectedAxes ? 6 - selectedAxes.confusionRisk : undefined;
-
-  if (relevanceMix.low >= 25) {
-    signals.push({
-      code: "low_relevance_dilution",
-      title: "평균을 낮춘 건 비타깃 반응일 수 있습니다",
-      description: `low relevance 표본이 ${relevanceMix.low.toFixed(0)}%입니다. 전체 평균보다 high/medium relevance 페르소나의 반응을 따로 보는 편이 의사결정에 더 가깝습니다.`,
-      severity: "warning",
-    });
-  }
 
   if (selectedAxes && selectedAxes.appeal >= 3.7 && selectedAxes.trust < 3.3) {
     signals.push({
@@ -543,7 +521,6 @@ export function buildSummary(
     avgScoreB,
     riskAxesA,
     riskAxesB,
-    relevanceMix,
     ...context,
   });
   const confidence = buildConfidence({
@@ -562,7 +539,6 @@ export function buildSummary(
     avgScoreB,
     riskAxesA,
     riskAxesB,
-    relevanceMix,
     segmentBreakdown,
     segmentInsights,
   });

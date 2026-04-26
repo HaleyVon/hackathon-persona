@@ -1,4 +1,5 @@
 import { InputType } from "@/lib/types";
+import { getVariantLabel } from "@/lib/display";
 
 interface Props {
   inputType: InputType;
@@ -41,25 +42,30 @@ const TYPE_CONFIG: Record<
 };
 
 function AxisBar({
-  label, valueA, valueB, lowLabel, highLabel,
+  label, valueA, valueB, lowLabel, highLabel, inputType,
 }: {
-  label: string; valueA: number; valueB?: number; lowLabel: string; highLabel: string;
+  label: string; valueA: number; valueB?: number; lowLabel: string; highLabel: string; inputType: InputType;
 }) {
+  const labelA = valueB === undefined
+    ? getVariantLabel(inputType, "A", "review")
+    : getVariantLabel(inputType, "A");
+  const labelB = getVariantLabel(inputType, "B");
+
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-slate-700">{label}</span>
         <div className="flex items-center gap-2 text-xs font-bold">
-          <span className="rounded-full border border-cyan-200 bg-white px-2 py-1 text-cyan-800">{valueB === undefined ? "현재안" : "A"} {valueA.toFixed(1)}</span>
+          <span className="rounded-full border border-cyan-200 bg-white px-2 py-1 text-cyan-800">{labelA} {valueA.toFixed(1)}</span>
           {valueB !== undefined && (
-            <span className="rounded-full border border-indigo-200 bg-white px-2 py-1 text-indigo-800">B {valueB.toFixed(1)}</span>
+            <span className="rounded-full border border-indigo-200 bg-white px-2 py-1 text-indigo-800">{labelB} {valueB.toFixed(1)}</span>
           )}
         </div>
       </div>
       <div className="space-y-2">
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[11px] font-semibold text-cyan-800">
-            <span>{valueB === undefined ? "현재안" : "A"}</span>
+            <span>{labelA}</span>
             <span>{valueA.toFixed(1)}/5</span>
           </div>
           <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
@@ -72,7 +78,7 @@ function AxisBar({
         {valueB !== undefined && (
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px] font-semibold text-indigo-800">
-              <span>B</span>
+              <span>{labelB}</span>
               <span>{valueB.toFixed(1)}/5</span>
             </div>
             <div className="h-3 rounded-full bg-slate-100 overflow-hidden">
@@ -81,13 +87,6 @@ function AxisBar({
                 style={{ width: `${((valueB - 1) / 4) * 100}%` }}
               />
             </div>
-          </div>
-        )}
-        {valueB === undefined && (
-          <div
-            className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-500"
-          >
-            이 축은 현재안 단독 기준으로 읽습니다.
           </div>
         )}
       </div>
@@ -121,6 +120,7 @@ export default function TypeResultModule({ inputType, axesA, axesB }: Props) {
               valueB={valB}
               lowLabel={axis.lowLabel}
               highLabel={axis.highLabel}
+              inputType={inputType}
             />
           );
         })}

@@ -440,7 +440,7 @@ function PersonaTeaser({
   decisionMode: NonNullable<SimulationSummary["decisionMode"]>;
   inputType: NonNullable<SimulationSummary["inputType"]>;
 }) {
-  const { persona, relevance, preferredVariant, preferenceReason, reactionA, reactionB } = result;
+  const { persona, preferredVariant, preferenceReason, reactionA, reactionB } = result;
   const isReview = decisionMode === "review";
   const quote = isReview
     ? reactionA.oneSentenceReaction
@@ -462,9 +462,6 @@ function PersonaTeaser({
         </span>
         <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-500">
           {persona.occupation}
-        </span>
-        <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-500">
-          적합도 {relevance.level}
         </span>
       </div>
       <p className="mb-2 text-xs font-bold text-slate-500">{badge}</p>

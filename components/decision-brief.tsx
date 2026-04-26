@@ -66,11 +66,11 @@ function pickRecommendation(summary: SimulationSummary, request: SimulationReque
 
   return {
     badge: formatRecommendationBadge(inputType, winner),
-    title: `우선은 ${getVariantLabel(inputType, winner)}로 진행하는 편이 더 안전합니다.`,
+    title: `${getVariantLabel(inputType, winner)}로 진행하는 편이 더 안전합니다.`,
     body:
       trust < 3 || confusion > 3
-        ? `${getVariantLabel(inputType, winner)}가 ${getVariantLabel(inputType, rival)}보다 낫지만 아직 신뢰나 명확성 보완이 필요합니다. 바로 확정하기보다 문구를 다듬은 뒤 후속 검증으로 가는 편이 좋습니다.`
-        : `${getVariantLabel(inputType, winner)}가 더 명확하고 설득력 있게 받아들여졌습니다. 현재 단계에서는 이 안을 기준으로 세부 표현만 다듬는 편이 맞습니다.`,
+        ? `${getVariantLabel(inputType, winner)}가 ${getVariantLabel(inputType, rival)}보다 낫지만 일부 보완이 필요합니다.`
+        : `${getVariantLabel(inputType, winner)}가 더 명확하고 설득력 있게 받아들여집니다.`,
     selectedLabel: getSelectionLabel(inputType, decisionMode),
     selectedText: winner === "A" ? request.variantA : request.variantB,
     winner,

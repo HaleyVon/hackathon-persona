@@ -14,20 +14,8 @@ interface Props {
 
 export default function PersonaCard({ result, index, decisionMode = "compare", inputType = "copy" }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const { persona, relevance, reactionA, reactionB, preferredVariant, preferenceReason } = result;
+  const { persona, reactionA, reactionB, preferredVariant, preferenceReason } = result;
   const isReview = decisionMode === "review";
-  const relevanceTone =
-    relevance.level === "high"
-      ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-      : relevance.level === "medium"
-        ? "bg-amber-100 text-amber-700 border-amber-200"
-        : "bg-slate-100 text-slate-600 border-slate-200";
-  const relevanceLabel =
-    relevance.level === "high"
-      ? "타깃 적합도 높음"
-      : relevance.level === "medium"
-        ? "타깃 적합도 보통"
-        : "타깃 적합도 낮음";
 
   const winnerColor =
     isReview
@@ -52,19 +40,11 @@ export default function PersonaCard({ result, index, decisionMode = "compare", i
               <Badge variant="outline" className="text-xs px-1.5 py-0">
                 {persona.occupation}
               </Badge>
-              <Badge className={`text-[10px] ${relevanceTone}`}>
-                {relevanceLabel}
-              </Badge>
             </div>
             <p className="text-xs text-slate-400">
               {persona.province}{persona.district ? ` · ${persona.district.split("-")[1]}` : ""}
               {persona.education_level ? ` · ${persona.education_level}` : ""}
             </p>
-            {relevance.reason && (
-              <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-                {relevance.reason}
-              </p>
-            )}
           </div>
           <Badge className={`text-xs shrink-0 ${winnerColor}`}>
             {isReview ? "단일 검토" : preferredVariant === "Tie" ? "동률" : `${getVariantLabel(inputType, preferredVariant)} 선호`}
