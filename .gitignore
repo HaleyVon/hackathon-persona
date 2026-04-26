@@ -1,0 +1,8 @@
+.DS_Store
+.env
+.env.local
+.venv/
+.claude/
+node_modules/
+.next/
+dist/
