@@ -90,7 +90,11 @@ export async function POST(req: NextRequest) {
     );
 
     // 4. 집계
-    const summary = buildSummary(results, insights, inputType, decisionMode);
+    const summary = buildSummary(results, insights, inputType, decisionMode, {
+      productDescription,
+      targetCustomer,
+      usageContext,
+    });
 
     return NextResponse.json({ summary, personas: results });
   } catch (err) {

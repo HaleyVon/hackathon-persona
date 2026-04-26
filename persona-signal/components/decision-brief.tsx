@@ -66,6 +66,8 @@ export default function DecisionBrief({ summary, variantA, variantB }: Props) {
   const rec = recommendation(summary, variantA, variantB);
   const risks = topRisks(summary);
   const actions = summary.recommendedCopies.slice(0, 3);
+  const confidence = summary.confidence;
+  const cautionSignals = summary.cautionSignals ?? [];
 
   const toneMap = {
     blue: {
@@ -90,6 +92,11 @@ export default function DecisionBrief({ summary, variantA, variantB }: Props) {
     },
   } as const;
   const tone = toneMap[rec.tone as keyof typeof toneMap];
+  const confidenceTone = confidence?.level === "high"
+    ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+    : confidence?.level === "medium"
+      ? "bg-amber-100 text-amber-700 border-amber-200"
+      : "bg-rose-100 text-rose-700 border-rose-200";
 
   return (
     <div className="space-y-4">
@@ -102,11 +109,43 @@ export default function DecisionBrief({ summary, variantA, variantB }: Props) {
               </span>
               <h2 className={`text-xl font-bold ${tone.title}`}>{rec.title}</h2>
               <p className="text-sm text-slate-600 leading-relaxed">{rec.body}</p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                  리스크 탐지용 결과
+                </span>
+                {confidence && (
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${confidenceTone}`}>
+                    {confidence.label}
+                  </span>
+                )}
+                {cautionSignals.slice(0, 3).map((signal) => (
+                  <span
+                    key={signal.code}
+                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                      signal.severity === "critical"
+                        ? "border-rose-200 bg-rose-100 text-rose-700"
+                        : signal.severity === "warning"
+                          ? "border-amber-200 bg-amber-100 text-amber-700"
+                          : "border-slate-200 bg-slate-100 text-slate-600"
+                    }`}
+                  >
+                    {signal.label}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="mt-4 rounded-xl bg-white/80 border border-white px-4 py-3">
-            <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">기준안</p>
-            <p className="text-sm text-slate-700 leading-relaxed">{rec.selectedCopy}</p>
+          <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-xl border border-white bg-white/80 px-4 py-3">
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">해석 가이드</p>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                {confidence?.description ?? "이 결과는 정답 예측이 아니라 출시 전 리스크를 먼저 드러내기 위한 신호입니다."}
+              </p>
+            </div>
+            <div className="rounded-xl border border-white bg-white/80 px-4 py-3">
+              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">기준안</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{rec.selectedCopy}</p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -124,6 +163,18 @@ export default function DecisionBrief({ summary, variantA, variantB }: Props) {
                 <li className="text-sm text-slate-400">뚜렷한 리스크가 없습니다.</li>
               )}
             </ul>
+            {cautionSignals.length > 0 && (
+              <div className="mt-3 border-t border-red-100 pt-3">
+                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">읽을 때 주의할 점</p>
+                <ul className="space-y-2">
+                  {cautionSignals.slice(0, 2).map((signal) => (
+                    <li key={signal.code} className="text-xs text-slate-500 leading-relaxed">
+                      <span className="font-semibold text-slate-600">{signal.label}</span> · {signal.description}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
 

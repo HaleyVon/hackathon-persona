@@ -105,6 +105,27 @@ export type RiskAxes = {
   confusionRisk: number;
 };
 
+export type SummaryConfidenceLevel = "high" | "medium" | "low";
+export type SummaryCautionCode =
+  | "small_sample"
+  | "mixed_reactions"
+  | "missing_context"
+  | "close_call"
+  | "residual_risk";
+
+export type SummaryConfidence = {
+  level: SummaryConfidenceLevel;
+  label: string;
+  description: string;
+};
+
+export type SummaryCautionSignal = {
+  code: SummaryCautionCode;
+  label: string;
+  description: string;
+  severity: "info" | "warning" | "critical";
+};
+
 export type SimulationSummary = {
   winner: "A" | "B" | "Tie";
   avgScoreA: number;
@@ -120,6 +141,8 @@ export type SimulationSummary = {
   segmentBreakdown: SegmentBreakdown[];
   decisionMode?: DecisionMode;
   inputType?: InputType;
+  confidence?: SummaryConfidence;
+  cautionSignals?: SummaryCautionSignal[];
 };
 
 export type SimulationResponse = {

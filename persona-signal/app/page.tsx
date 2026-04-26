@@ -72,7 +72,7 @@ export default function Home() {
           <div>
             <span className="font-bold text-slate-800 text-sm">Persona Signal</span>
             <span className="hidden sm:inline text-xs text-slate-400 ml-2">
-              한국인 합성 페르소나 기반 AI 메시지 검증 도구
+              타깃 페르소나 기반 pre-validation tool
             </span>
           </div>
         </div>
