@@ -37,6 +37,7 @@
 - [x] `lib/llm.ts` — gpt-4o-mini, Promise.all 병렬 호출, 요약 LLM 호출
 - [x] `lib/summarize.ts` — 집계, 세그먼트 분화(SegmentBreakdown) 계산
 - [x] `app/api/simulate/route.ts` — `maxDuration=60`, Zod validation, 전체 파이프라인
+- [x] 리스크 5축 점수(comprehension/trust/appeal/resistance/confusionRisk) 수집 및 요약 집계 추가
 
 ### 프론트엔드 UI
 - [x] `app/layout.tsx` — 한국어 메타데이터
@@ -49,6 +50,8 @@
 - [x] `components/segment-table.tsx` — **세그먼트 분화 (와우 모먼트)**
 - [x] `components/insight-cards.tsx` — 전체 인사이트 + 호감/우려/개선 카피 3카드
 - [x] `components/persona-card.tsx` — 페르소나 카드 (토글 상세)
+- [x] `components/risk-radar.tsx` — 5축 리스크 레이더 차트
+- [x] `components/result-summary.tsx` — 명확성/신뢰/혼란 리스크 중심 KPI 카드로 개편
 
 ### 문서
 - [x] 피치 문서 (`docs/hackathon/`)
@@ -65,9 +68,9 @@
 
 ### 즉시 (H5 — 지금)
 
-- [ ] **fallback demo-response.json 생성**
+- [x] **fallback demo-response.json 생성**
   - 경로: `persona-signal/data/demo-response.json`
-  - 내용: 실제 API 응답 1개를 복사해서 저장
+  - 내용: 리스크 5축 필드를 포함한 실제형 API 응답 저장
   - 목적: 발표 중 네트워크/LLM 불안정 시 데모 강행 가능
 
 - [ ] **데모 모드 토글 추가**

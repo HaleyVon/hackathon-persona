@@ -1,5 +1,4 @@
-import { SimulationSummary } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
+import { RiskAxes, SimulationSummary } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface Props {
@@ -9,77 +8,131 @@ interface Props {
 }
 
 export default function ResultSummary({ summary, variantA, variantB }: Props) {
-  const { winner, avgScoreA, avgScoreB } = summary;
+  const { riskAxesA, riskAxesB, winner } = summary;
+
+  // Card 1: 더 명확한 안 (comprehension 기준)
+  const clearer =
+    riskAxesA && riskAxesB
+      ? riskAxesA.comprehension >= riskAxesB.comprehension ? "A" : "B"
+      : winner;
+  const clearerScore =
+    clearer === "A" ? riskAxesA?.comprehension : riskAxesB?.comprehension;
+
+  // Card 2: 신뢰 리스크 (trust가 낮은 쪽)
+  const lowTrustVariant =
+    riskAxesA && riskAxesB
+      ? riskAxesA.trust <= riskAxesB.trust ? "A" : "B"
+      : null;
+  const lowTrustScore =
+    lowTrustVariant === "A" ? riskAxesA?.trust : riskAxesB?.trust;
+
+  // Card 3: 혼란 리스크 (confusionRisk가 높은 쪽)
+  const highConfusionVariant =
+    riskAxesA && riskAxesB
+      ? riskAxesA.confusionRisk >= riskAxesB.confusionRisk ? "A" : "B"
+      : null;
+  const highConfusionScore =
+    highConfusionVariant === "A" ? riskAxesA?.confusionRisk : riskAxesB?.confusionRisk;
+
+  const hasRiskData = riskAxesA && riskAxesB;
+
+  if (!hasRiskData) {
+    return <LegacySummary summary={summary} variantA={variantA} variantB={variantB} />;
+  }
 
   return (
     <div className="grid grid-cols-3 gap-3">
-      <ScoreCard
-        label="카피 A 평균 구매의향"
-        score={avgScoreA}
-        copy={variantA}
-        color="blue"
-        isWinner={winner === "A"}
-      />
-      <ScoreCard
-        label="카피 B 평균 구매의향"
-        score={avgScoreB}
-        copy={variantB}
-        color="violet"
-        isWinner={winner === "B"}
-      />
-      <WinnerCard winner={winner} scoreA={avgScoreA} scoreB={avgScoreB} />
+      {/* 더 명확한 안 */}
+      <Card className="border-blue-100 bg-blue-50/50">
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">더 명확한 안</p>
+          <p className="text-3xl font-bold text-blue-600">
+            카피 {clearer}
+            <span className="text-sm font-normal text-slate-400 ml-1">이해도 {clearerScore?.toFixed(1)}/5</span>
+          </p>
+          <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">
+            {clearer === "A" ? variantA : variantB}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* 신뢰 리스크 */}
+      <Card className={`${lowTrustScore && lowTrustScore < 3 ? "border-amber-200 bg-amber-50/50" : "border-slate-100"}`}>
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">신뢰 리스크</p>
+          {lowTrustVariant ? (
+            <>
+              <p className={`text-3xl font-bold ${lowTrustScore && lowTrustScore < 3 ? "text-amber-600" : "text-slate-600"}`}>
+                카피 {lowTrustVariant}
+                <span className="text-sm font-normal text-slate-400 ml-1">trust {lowTrustScore?.toFixed(1)}/5</span>
+              </p>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                {lowTrustScore && lowTrustScore < 3 ? "신뢰도가 낮습니다 — 근거/수치 보강 필요" : "신뢰도 양호"}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-slate-400">데이터 없음</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 혼란 리스크 */}
+      <Card className={`${highConfusionScore && highConfusionScore > 3 ? "border-red-200 bg-red-50/50" : "border-slate-100"}`}>
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">혼란 리스크</p>
+          {highConfusionVariant ? (
+            <>
+              <p className={`text-3xl font-bold ${highConfusionScore && highConfusionScore > 3 ? "text-red-600" : "text-slate-600"}`}>
+                카피 {highConfusionVariant}
+                <span className="text-sm font-normal text-slate-400 ml-1">혼란 {highConfusionScore?.toFixed(1)}/5</span>
+              </p>
+              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                {highConfusionScore && highConfusionScore > 3 ? "오해 가능성 높음 — 문구 구체화 필요" : "혼란 리스크 낮음"}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-slate-400">데이터 없음</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
 
-function ScoreCard({
-  label, score, copy, color, isWinner,
+function LegacySummary({
+  summary, variantA, variantB,
 }: {
-  label: string; score: number; copy: string;
-  color: "blue" | "violet"; isWinner: boolean;
+  summary: SimulationSummary; variantA: string; variantB: string;
 }) {
-  const colorMap = {
-    blue: { bg: "bg-blue-50", text: "text-blue-600", ring: "ring-blue-200" },
-    violet: { bg: "bg-violet-50", text: "text-violet-600", ring: "ring-violet-200" },
-  };
-  const c = colorMap[color];
-
-  return (
-    <Card className={`relative ${isWinner ? `ring-2 ${c.ring}` : ""}`}>
-      <CardContent className="pt-4 pb-4">
-        {isWinner && (
-          <Badge className="absolute -top-2 left-3 text-xs bg-emerald-500 hover:bg-emerald-500">
-            승자
-          </Badge>
-        )}
-        <p className="text-xs text-slate-400 mb-1">{label}</p>
-        <p className={`text-3xl font-bold ${c.text}`}>{score.toFixed(1)}<span className="text-base font-normal text-slate-400">/5</span></p>
-        <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{copy}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function WinnerCard({ winner, scoreA, scoreB }: { winner: string; scoreA: number; scoreB: number }) {
-  const diff = Math.abs(scoreA - scoreB).toFixed(1);
-  const isA = winner === "A";
+  const { winner, avgScoreA, avgScoreB } = summary;
+  const diff = Math.abs(avgScoreA - avgScoreB).toFixed(1);
   const isTie = winner === "Tie";
 
   return (
-    <Card className={`${isTie ? "bg-slate-50" : "bg-emerald-50 ring-2 ring-emerald-200"}`}>
-      <CardContent className="pt-4 pb-4 flex flex-col justify-between h-full">
-        <p className="text-xs text-slate-400">최종 승자</p>
-        <div>
-          <p className={`text-3xl font-bold ${isTie ? "text-slate-500" : "text-emerald-600"}`}>
+    <div className="grid grid-cols-3 gap-3">
+      <Card className="border-blue-100">
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">카피 A 매력도</p>
+          <p className="text-3xl font-bold text-blue-600">{avgScoreA.toFixed(1)}<span className="text-base font-normal text-slate-400">/5</span></p>
+          <p className="text-xs text-slate-500 mt-2 line-clamp-2">{variantA}</p>
+        </CardContent>
+      </Card>
+      <Card className="border-violet-100">
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">카피 B 매력도</p>
+          <p className="text-3xl font-bold text-violet-600">{avgScoreB.toFixed(1)}<span className="text-base font-normal text-slate-400">/5</span></p>
+          <p className="text-xs text-slate-500 mt-2 line-clamp-2">{variantB}</p>
+        </CardContent>
+      </Card>
+      <Card className={isTie ? "bg-slate-50" : "bg-blue-50"}>
+        <CardContent className="pt-4 pb-4">
+          <p className="text-xs text-slate-400 mb-1">더 명확한 안</p>
+          <p className={`text-3xl font-bold ${isTie ? "text-slate-500" : "text-blue-600"}`}>
             {isTie ? "동률" : `카피 ${winner}`}
           </p>
-          {!isTie && (
-            <p className="text-xs text-emerald-600 mt-1">
-              {isA ? "A" : "B"}가 {diff}점 더 높음
-            </p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          {!isTie && <p className="text-xs text-slate-500 mt-1">{winner === "A" ? "A" : "B"}가 {diff}점 더 높음</p>}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

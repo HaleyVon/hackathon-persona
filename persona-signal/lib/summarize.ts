@@ -1,4 +1,30 @@
-import { PersonaComparisonResult, SegmentBreakdown, SimulationSummary } from "./types";
+import { PersonaComparisonResult, RiskAxes, SegmentBreakdown, SimulationSummary } from "./types";
+
+type AxesKey = keyof RiskAxes;
+const AXES: AxesKey[] = ["comprehension", "trust", "appeal", "resistance", "confusionRisk"];
+
+function avgAxis(results: PersonaComparisonResult[], side: "A" | "B", axis: AxesKey): number {
+  const vals = results
+    .map((r) => (side === "A" ? r.reactionA : r.reactionB)[axis])
+    .filter((v): v is number => v !== undefined);
+  if (vals.length === 0) return 0;
+  return Math.round((vals.reduce((s, v) => s + v, 0) / vals.length) * 10) / 10;
+}
+
+function buildRiskAxes(results: PersonaComparisonResult[], side: "A" | "B"): RiskAxes | undefined {
+  const hasData = results.some((r) => {
+    const rx = side === "A" ? r.reactionA : r.reactionB;
+    return rx.trust !== undefined || rx.confusionRisk !== undefined;
+  });
+  if (!hasData) return undefined;
+  return {
+    comprehension: avgAxis(results, side, "comprehension"),
+    trust: avgAxis(results, side, "trust"),
+    appeal: avgAxis(results, side, "appeal"),
+    resistance: avgAxis(results, side, "resistance"),
+    confusionRisk: avgAxis(results, side, "confusionRisk"),
+  };
+}
 
 export function buildSummary(
   results: PersonaComparisonResult[],
@@ -21,6 +47,8 @@ export function buildSummary(
     winner,
     avgScoreA: Math.round(avgScoreA * 10) / 10,
     avgScoreB: Math.round(avgScoreB * 10) / 10,
+    riskAxesA: buildRiskAxes(results, "A"),
+    riskAxesB: buildRiskAxes(results, "B"),
     segmentBreakdown: buildSegmentBreakdown(results),
     ...insights,
   };

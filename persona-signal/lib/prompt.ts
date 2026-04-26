@@ -40,14 +40,24 @@ export function buildUserPrompt(
 ): string {
   const schema = `{
   "reactionA": {
-    "purchaseIntent": <1~5 정수>,
+    "purchaseIntent": <1~5 정수. 구매/사용 의향>,
+    "comprehension": <1~5 정수. 메시지가 명확히 이해되는가. 5=매우 명확>,
+    "trust": <1~5 정수. 믿을 수 있는 느낌. 5=매우 신뢰>,
+    "appeal": <1~5 정수. 관심/매력도. 5=매우 매력적>,
+    "resistance": <1~5 정수. 거부감. 5=매우 강한 거부감>,
+    "confusionRisk": <1~5 정수. 오해/혼동 가능성. 5=매우 혼란스러움>,
     "likedPoints": ["<좋았던 점 1>", "<좋았던 점 2>"],
     "concerns": ["<거부감/우려 1>", "<거부감/우려 2>"],
     "memorablePhrase": "<가장 기억에 남는 표현>",
     "oneSentenceReaction": "<한 문장 반응>"
   },
   "reactionB": {
-    "purchaseIntent": <1~5 정수>,
+    "purchaseIntent": <1~5 정수. 구매/사용 의향>,
+    "comprehension": <1~5 정수. 메시지가 명확히 이해되는가. 5=매우 명확>,
+    "trust": <1~5 정수. 믿을 수 있는 느낌. 5=매우 신뢰>,
+    "appeal": <1~5 정수. 관심/매력도. 5=매우 매력적>,
+    "resistance": <1~5 정수. 거부감. 5=매우 강한 거부감>,
+    "confusionRisk": <1~5 정수. 오해/혼동 가능성. 5=매우 혼란스러움>,
     "likedPoints": ["<좋았던 점 1>", "<좋았던 점 2>"],
     "concerns": ["<거부감/우려 1>", "<거부감/우려 2>"],
     "memorablePhrase": "<가장 기억에 남는 표현>",

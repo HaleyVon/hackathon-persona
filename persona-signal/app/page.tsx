@@ -11,6 +11,7 @@ import ScoreChart from "@/components/score-chart";
 import SegmentTable from "@/components/segment-table";
 import InsightCards from "@/components/insight-cards";
 import PersonaCard from "@/components/persona-card";
+import RiskRadar from "@/components/risk-radar";
 
 export default function Home() {
   const [request, setRequest] = useState<SimulationRequest>(DEMO_REQUEST);
@@ -131,8 +132,18 @@ export default function Home() {
                 variantB={request.variantB}
               />
 
+              {/* 리스크 레이더 */}
+              {result.summary.riskAxesA && result.summary.riskAxesB && (
+                <Section title="5축 리스크 비교" highlight>
+                  <RiskRadar
+                    axesA={result.summary.riskAxesA}
+                    axesB={result.summary.riskAxesB}
+                  />
+                </Section>
+              )}
+
               {/* 차트 */}
-              <Section title="구매의향 비교">
+              <Section title="매력도 비교">
                 <ScoreChart
                   results={result.personas}
                   avgScoreA={result.summary.avgScoreA}

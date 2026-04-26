@@ -47,6 +47,11 @@ export type SimulationRequest = {
 
 export type VariantReaction = {
   purchaseIntent: number; // 1~5
+  comprehension?: number; // 이해도 1~5
+  trust?: number;         // 신뢰도 1~5
+  appeal?: number;        // 매력도 1~5
+  resistance?: number;    // 거부감 1~5 (높을수록 위험)
+  confusionRisk?: number; // 혼란 리스크 1~5 (높을수록 위험)
   likedPoints: string[];
   concerns: string[];
   memorablePhrase: string;
@@ -69,10 +74,20 @@ export type SegmentBreakdown = {
   total: number;
 };
 
+export type RiskAxes = {
+  comprehension: number;
+  trust: number;
+  appeal: number;
+  resistance: number;
+  confusionRisk: number;
+};
+
 export type SimulationSummary = {
   winner: "A" | "B" | "Tie";
   avgScoreA: number;
   avgScoreB: number;
+  riskAxesA?: RiskAxes;
+  riskAxesB?: RiskAxes;
   topLikedPoints: string[];
   topConcerns: string[];
   recommendedCopies: string[];

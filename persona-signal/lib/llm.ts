@@ -112,9 +112,20 @@ export async function generateSummaryInsights(
   }
 }
 
+function clamp(v: unknown): number | undefined {
+  const n = Number(v);
+  if (isNaN(n)) return undefined;
+  return Math.min(5, Math.max(1, Math.round(n)));
+}
+
 function normalizeReaction(r: Partial<VariantReaction>): VariantReaction {
   return {
     purchaseIntent: Math.min(5, Math.max(1, Number(r?.purchaseIntent) || 3)),
+    comprehension: clamp(r?.comprehension),
+    trust: clamp(r?.trust),
+    appeal: clamp(r?.appeal),
+    resistance: clamp(r?.resistance),
+    confusionRisk: clamp(r?.confusionRisk),
     likedPoints: r?.likedPoints ?? [],
     concerns: r?.concerns ?? [],
     memorablePhrase: r?.memorablePhrase ?? "",
